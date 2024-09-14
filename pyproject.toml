@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "ez-excel-mgt"
+version = "0.1.0"
+description = "Rust-powered Python module for Excel manipulation"
+authors = ["Christophe Druet <christophe@stoachup.com>"]
+license = "MIT"
+readme = "README.md"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Rust",
+    "Development Status :: 5 - Production/Stable",
+]
+keywords = ["credentials", "keyring"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "^2.2.2"
+polars = "1.7.1"
+pyarrow = "^17.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+maturin = "^1.7.1"
+
+[build-system]
+requires = ["maturin>=1.7.1", "setuptools"]
+build-backend = "maturin"

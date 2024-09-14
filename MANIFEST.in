@@ -1,0 +1,11 @@
+# Include the README file
+include README.md
+
+# Include the LICENSE file
+include LICENSE
+
+# Include the pyproject.toml file
+include pyproject.toml
+
+# Include any additional documentation or config files (if needed)
+# recursive-include docs *
