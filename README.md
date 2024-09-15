@@ -16,7 +16,7 @@ Create an Excel file test.xlsx with a few rows and columns in a sheet named "She
 
 ```python
 import pandas as pd
-import ez_excel_mgt
+import ez_excel_mgt as ezex
 
 # Create a Pandas DataFrame
 df = pd.DataFrame({
@@ -26,9 +26,35 @@ df = pd.DataFrame({
 
 # Define the sheet name and Excel file path
 sheet_name = "Sheet1"
-excel_file_path = "test.xlsx"
+excel_file_path = "template.xlsx"
 
 # Call the function to write the DataFrame to the existing sheet
-ez_excel_mgt.add_df_to_sheet(df, sheet_name, excel_file_path)
+ezex.will_sheet_with(excel_file_path, sheet_name, df)
+```
+
+### Options
+
+- `named`: if the dataframe columns are named (default: False).
+- `header_row`: the row number of the column names (default: 1). Can be set to `last`, `first` or be an integer > 0.
+- `overwrite`: if the data should be overwritten if it exists (default: False).
+- `start_row`: the row number to start writing the data (must be greater than the header row). Can be set to `last`, `first` or be an integer > 0.
+- `strict`: if numbers of columns must match (if not named) or if columns names must match (if named). Otherwise, if not named, the number of columns in the dataframe must be lower or equal to the number of columns in the excel sheet, else all columns of the dataframe must be found in the excel sheet.
+
+```python
+import pandas as pd
+import ez_excel_mgt as ezex
+
+# Create a Pandas DataFrame
+df = pd.DataFrame({
+    "Name": ["Alice", "Bob", "Charlie"],
+    "Age": [25, 30, 35]
+})
+
+# Define the sheet name and Excel file path
+sheet_name = "Sheet1"
+excel_file_path = "template.xlsx"
+
+# Call the function to write the DataFrame to the existing sheet
+ezex.will_sheet_with(excel_file_path, sheet_name, df, named=True, header_row=3, overwrite=True, start_row=4)
 ```
 
