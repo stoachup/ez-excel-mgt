@@ -176,6 +176,7 @@ test_jh*
 /*.toml
 # But don't ignore pyproject.toml
 !pyproject.toml
+!cargo.toml
 /*.csv
 /CSVs
 /*.numbers
