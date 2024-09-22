@@ -54,9 +54,9 @@ jobs:
         run: |
           poetry run cibuildwheel --output-dir wheelhouse
 
-      # Upload the wheels as GitHub artifacts (optional)
+      # Upload the wheels as GitHub artifacts
       - name: Upload built wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3  # Updated to v3
         with:
           name: wheels
           path: wheelhouse/
@@ -68,7 +68,7 @@ jobs:
 
     steps:
       - name: Download built wheels
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v3  # Updated to v3
         with:
           name: wheels
 
