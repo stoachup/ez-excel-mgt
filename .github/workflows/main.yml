@@ -1,41 +1,78 @@
-name: Build Wheels
+name: Build and Publish Wheels
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build_wheels:
-    runs-on: ubuntu-latest
-
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
+      # Install Poetry
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo 'export PATH="$HOME/.local/bin:$PATH"' >> $GITHUB_ENV
 
+      # Cache Poetry dependencies to speed up subsequent builds
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.poetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      # Install project dependencies using Poetry
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install maturin cibuildwheel
+          poetry install --no-interaction --no-ansi
 
-      - name: Build wheels
+      # Run cibuildwheel to build wheels for macOS, Linux, and Windows
+      - name: Build wheels with cibuildwheel
         run: |
-          cibuildwheel --output-dir wheelhouse
+          poetry run cibuildwheel --output-dir wheelhouse
 
-      - name: Upload wheels as artifacts
-        uses: actions/upload-artifact@v2
+      # Upload the wheels as GitHub artifacts (optional)
+      - name: Upload built wheels
+        uses: actions/upload-artifact@v3
         with:
           name: wheels
-          path: ./wheelhouse
+          path: wheelhouse/
+
+  publish:
+    needs: build_wheels
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download built wheels
+        uses: actions/download-artifact@v3
+        with:
+          name: wheels
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
