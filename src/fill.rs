@@ -2,7 +2,7 @@
 use log::{debug, info, warn};
 use pyo3::prelude::*;
 use pyo3::types::PyAny;
-use polars::prelude::{DataFrame, AnyValue, SerReader};
+use polars::prelude::*;
 use polars::io::ipc::IpcReader;
 use std::collections::HashMap;
 use std::cmp::max;
@@ -65,7 +65,7 @@ fn py_polars_df_to_rust_polars_df(py: Python, py_df: &PyAny) -> PyResult<DataFra
 /// :param py: The Python interpreter instance.
 /// :param df: The Python Pandas DataFrame.
 /// :return: A Rust Polars DataFrame.
-fn pandas_to_polars(py: Python, df: &PyAny) -> PyResult<DataFrame> {
+fn py_pandas_df_to_rust_polars_df(py: Python, df: &PyAny) -> PyResult<DataFrame> {
     let polars: &PyModule = py.import("polars").map_err(|_| {
         PyErr::new::<pyo3::exceptions::PyTypeError, _>("Failed to import polars module")
     })?;
@@ -73,6 +73,79 @@ fn pandas_to_polars(py: Python, df: &PyAny) -> PyResult<DataFrame> {
         PyErr::new::<pyo3::exceptions::PyTypeError, _>("Failed to convert Pandas DataFrame to Polars")
     })?;
     py_polars_df_to_rust_polars_df(py, df_polars)
+}
+
+/// Convert a Python dictionary of lists to a Rust Polars DataFrame.
+///
+/// This function takes a Python dictionary where each key corresponds to a list of values
+/// and converts it into a Polars DataFrame, ensuring that each column contains data of the same type.
+///
+/// :param py: The Python interpreter instance.
+/// :param dict: The Python dictionary to convert.
+/// :return: A Rust Polars DataFrame.
+fn py_dict_of_lists_to_rust_polars_df(py: Python, dict: &PyAny) -> PyResult<DataFrame> {
+    // Extract the Python dictionary as a HashMap
+    let dict: HashMap<String, Vec<PyObject>> = dict.extract()?;
+
+    // Initialize an empty Vec to hold the columns of the DataFrame
+    let mut columns: Vec<Series> = Vec::with_capacity(dict.len());
+
+    // Iterate over the dictionary
+    for (name, values) in dict {
+        debug!("name: {:?}, values: {:?}", name, values);
+        // Handle the type of the first value to determine the type of the column
+        if let Some(value) = values.get(0) {
+            let first_value = value.as_ref(py); // Extract the reference here
+            let series = if first_value.is_instance(py.get_type::<pyo3::types::PyString>())? {
+                // Handle String type
+                let extracted_values: Vec<String> = values.iter()
+                    .map(|val| val.extract::<String>(py).unwrap_or_default())
+                    .collect();
+                Series::new(name.into(), extracted_values) // Convert name to PlSmallStr
+            } else if first_value.is_instance(py.get_type::<pyo3::types::PyInt>())? {
+                // Handle integer type
+                let extracted_values: Vec<i32> = values.iter()
+                    .map(|val| val.extract::<i32>(py).unwrap_or_default())
+                    .collect();
+                Series::new(name.into(), extracted_values) // Convert name to PlSmallStr
+            } else if first_value.is_instance(py.get_type::<pyo3::types::PyFloat>())? {
+                // Handle float type
+                let extracted_values: Vec<f64> = values.iter()
+                    .map(|val| val.extract::<f64>(py).unwrap_or_default())
+                    .collect();
+                Series::new(name.into(), extracted_values) // Convert name to PlSmallStr
+            } else if first_value.is_instance(py.get_type::<pyo3::types::PyBool>())? {
+                // Handle boolean type
+                let extracted_values: Vec<bool> = values.iter()
+                    .map(|val| val.extract::<bool>(py).unwrap_or(false))
+                    .collect();
+                Series::new(name.into(), extracted_values) // Convert name to PlSmallStr
+            } else {
+                // Fallback for unsupported types
+                return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+                    "Unsupported value type in column: {}",
+                    name
+                )));
+            };
+
+            // Add the Series to the columns vector
+            columns.push(series);
+        } else {
+            // Handle the case where the column is empty
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                "Column {} has no values",
+                name
+            )));
+        }
+    }
+
+    // Create a DataFrame from the columns
+    DataFrame::new(columns).map_err(|e| {
+        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+            "Failed to create DataFrame: {}",
+            e
+        ))
+    })
 }
 
 /// Convert an `AnyValue` into a string suitable for writing into an Excel cell.
@@ -167,6 +240,7 @@ fn add_polars_df_to_sheet_by_column_name(
         // Check for missing columns in DataFrame
         for col_name in column_map.keys() {
             if !df_columns.contains(col_name) {
+                debug!("Column '{}' is missing in the DataFrame", col_name);
                 let err_msg = format!("Column '{}' in excel is missing in DataFrame", col_name);
                 return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(err_msg));
             }
@@ -176,7 +250,8 @@ fn add_polars_df_to_sheet_by_column_name(
     // Check for missing columns in the sheet
     for df_col in &df_columns {
         if !column_map.contains_key(df_col) {
-            let err_msg = format!("Column '{}' in DataFrame is missing in the template", df_col);
+            debug!("Column '{}' is missing in the template", df_col);
+            let err_msg = format!("Column '{}' is missing in the template", df_col);
             return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(err_msg));
         }
     }
@@ -252,6 +327,58 @@ fn get_row(py: Python, which_row: Option<PyObject>, rows: (u32, u32, u32)) -> Py
     }
 }
 
+/// Get the DataFrame type from the specified module.
+///
+/// :param py: The Python interpreter instance.
+/// :param module_name: The name of the module to import (e.g., "pandas" or "polars").
+/// :return: The DataFrame type from the specified module.
+fn get_dataframe_type<'py>(py: Python<'py>, module_name: &str) -> PyResult<&'py PyAny> {
+    // Import the module
+    let module = PyModule::import(py, module_name).map_err(|e| {
+        PyErr::new::<pyo3::exceptions::PyImportError, _>(format!("Failed to import {} module: {}", module_name, e))
+    })?;
+    
+    // Get the DataFrame type from the module
+    module.getattr("DataFrame").map_err(|e| {
+        PyErr::new::<pyo3::exceptions::PyAttributeError, _>(format!("Failed to get DataFrame from module {}: {}", module_name, e))
+    })
+}
+/// Convert a Python object to a Polars DataFrame.
+///
+/// This function takes a Python object and converts it into a Polars DataFrame.
+/// It checks if the input is a Pandas DataFrame or a dictionary and performs
+/// the appropriate conversion.
+///
+/// :param py: The Python interpreter instance.
+/// :param df: The Python object to convert.
+/// :return: A Rust Polars DataFrame.
+fn convert_to_polars_df(py: Python, df: &PyAny, named: bool) -> PyResult<DataFrame> {
+    let pandas_type = get_dataframe_type(py, "pandas")?;
+    let polars_type = get_dataframe_type(py, "polars")?;
+
+    debug!("convert_to_polars_df - Named: {:?}", named);
+
+    if df.is_instance(pandas_type)? {
+        // Convert Python Pandas DataFrame to Rust Polars DataFrame
+        py_pandas_df_to_rust_polars_df(py, df)
+    } else if df.is_instance(polars_type)? {
+        // Convert Python Polars DataFrame to Rust Polars DataFrame
+        py_polars_df_to_rust_polars_df(py, df)
+    } else if df.is_instance(py.get_type::<pyo3::types::PyDict>())? {
+        if !named {
+            return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>("As you are using a dictionary, you must specify named as True and the header_row position if not the last row in the sheet"));
+        }
+        // Check if df is a HashMap<String, Vec<PyObject>>
+        let _: HashMap<String, Vec<PyObject>> = df.extract().map_err(|_| {
+            PyErr::new::<pyo3::exceptions::PyTypeError, _>("Structure of dictionary is not correct")
+        })?;
+        // Convert Dict[str, List[Any]] to Polars DataFrame
+        py_dict_of_lists_to_rust_polars_df(py, df)
+    } else {
+        // Handle case where df is neither a Pandas DataFrame nor a Polars DataFrame nor a dictionary
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>("Input is neither a Pandas DataFrame nor a Polars DataFrame nor a dictionary of lists"))
+    }
+}
 
 /// Add a Polars or Pandas DataFrame to an Excel sheet.
 ///
@@ -282,18 +409,10 @@ pub fn fill_sheet_with(
     debug!("        sheet_name: {:?}", sheet_name);
     debug!("        df: {:?}", df);
     debug!("  OPTS: strict: {:?}, named: {:?}, overwrite: {:?}, header_row: {:?}, start_row: {:?}", strict, named, overwrite, header_row, start_row);
-    // Determine if the DataFrame is Pandas or Polars
-    let df: DataFrame = if PyAny::is_instance(df.as_ref(py), py.get_type::<PyAny>())? {
-        pandas_to_polars(py, df.as_ref(py))?
-    } else {
-        let polars = py.import("polars").map_err(|_| {
-            PyErr::new::<pyo3::exceptions::PyTypeError, _>("Failed to import polars module")
-        })?;
-        let py_df = polars.call_method1("DataFrame", (df,)).map_err(|_| {
-            PyErr::new::<pyo3::exceptions::PyTypeError, _>("Failed to convert input to Polars DataFrame")
-        })?;
-        py_polars_df_to_rust_polars_df(py, py_df)?
-    };
+    // Convert the input to a Polars DataFrame
+    let named = named.unwrap_or(false); // named must be changed into true if df is a dictionary
+    let df: DataFrame = convert_to_polars_df(py, df.as_ref(py), named)?;
+    debug!("df: {:?}", df);
 
     // Load the existing Excel workbook
     let mut workbook = reader::xlsx::read(excel_file_path).map_err(|_| {
@@ -310,7 +429,6 @@ pub fn fill_sheet_with(
     
     let last_row = sheet.get_highest_row();
     debug!("last_row: {:?}", last_row);
-    let named = named.unwrap_or(false);
     let overwrite = overwrite.unwrap_or(false);
     debug!("named: {:?}, overwrite: {:?}", named, overwrite);
     let header_row = get_row(py, header_row, (1, last_row, last_row))?;
