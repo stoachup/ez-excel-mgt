@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ez-excel-mgt"
-version = "0.3.0"
+version = "0.3.1"
 description = "Rust-powered Python module for Excel manipulation"
 authors = ["Christophe Druet <christophe@stoachup.com>"]
 license = "MIT"
@@ -30,7 +30,33 @@ pytest-clarity = "^1.0.1"
 pytest-cov = "^5.0.0"
 cibuildwheel = "^2.21.1"
 twine = "^5.1.1"
+bumpver = "^2023.1129"
+black = "^24.8.0"
+isort = "^5.13.2"
 
 [build-system]
 requires = ["maturin>=1.7.1", "setuptools", "cibuildwheel>=2.0"]
 build-backend = "maturin"
+
+[tool.bumpver]
+current_version = "0.3.1"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message  = "bump version {old_version} -> {new_version}"
+commit          = true
+tag             = true
+push            = false
+
+[tool.bumpver.file_patterns]
+    "pyproject.toml" = [
+        'current_version = "{version}"',
+        'version = "{version}"',
+    ]
+    "cargo.toml" = [
+        'version = "{version}"',
+    ]
+
+[tool.isort]
+profile                   = "black"
+import_heading_stdlib     = "Standard library imports"
+import_heading_thirdparty = "Third party imports"
+import_heading_firstparty = "mongument imports"

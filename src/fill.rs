@@ -84,54 +84,51 @@ fn py_pandas_df_to_rust_polars_df(py: Python, df: &PyAny) -> PyResult<DataFrame>
 /// :param dict: The Python dictionary to convert.
 /// :return: A Rust Polars DataFrame.
 fn py_dict_of_lists_to_rust_polars_df(py: Python, dict: &PyAny) -> PyResult<DataFrame> {
-    // Extract the Python dictionary as a HashMap
     let dict: HashMap<String, Vec<PyObject>> = dict.extract()?;
-
-    // Initialize an empty Vec to hold the columns of the DataFrame
     let mut columns: Vec<Series> = Vec::with_capacity(dict.len());
 
-    // Iterate over the dictionary
+    let first_column_len = if let Some((_, values)) = dict.iter().next() {
+        values.len()
+    } else {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Dictionary is empty"));
+    };
+
     for (name, values) in dict {
-        debug!("name: {:?}, values: {:?}", name, values);
-        // Handle the type of the first value to determine the type of the column
+        if values.len() != first_column_len {
+            let err_msg = format!("At least one list in the dictionary has a different length than the others");
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(err_msg)); // Handle the error as needed
+        }
+
         if let Some(value) = values.get(0) {
-            let first_value = value.as_ref(py); // Extract the reference here
+            let first_value = value.as_ref(py);
             let series = if first_value.is_instance(py.get_type::<pyo3::types::PyString>())? {
-                // Handle String type
-                let extracted_values: Vec<String> = values.iter()
-                    .map(|val| val.extract::<String>(py).unwrap_or_default())
+                let extracted_values: Vec<Option<String>> = values.iter()
+                    .map(|val| val.extract::<Option<String>>(py).ok().flatten())
                     .collect();
-                Series::new(name.into(), extracted_values) // Convert name to PlSmallStr
+                Series::new(name.into(), extracted_values)
             } else if first_value.is_instance(py.get_type::<pyo3::types::PyInt>())? {
-                // Handle integer type
-                let extracted_values: Vec<i32> = values.iter()
-                    .map(|val| val.extract::<i32>(py).unwrap_or_default())
+                let extracted_values: Vec<Option<i32>> = values.iter()
+                    .map(|val| val.extract::<Option<i32>>(py).ok().flatten())
                     .collect();
-                Series::new(name.into(), extracted_values) // Convert name to PlSmallStr
+                Series::new(name.into(), extracted_values)
             } else if first_value.is_instance(py.get_type::<pyo3::types::PyFloat>())? {
-                // Handle float type
-                let extracted_values: Vec<f64> = values.iter()
-                    .map(|val| val.extract::<f64>(py).unwrap_or_default())
+                let extracted_values: Vec<Option<f64>> = values.iter()
+                    .map(|val| val.extract::<Option<f64>>(py).ok().flatten())
                     .collect();
-                Series::new(name.into(), extracted_values) // Convert name to PlSmallStr
+                Series::new(name.into(), extracted_values)
             } else if first_value.is_instance(py.get_type::<pyo3::types::PyBool>())? {
-                // Handle boolean type
-                let extracted_values: Vec<bool> = values.iter()
-                    .map(|val| val.extract::<bool>(py).unwrap_or(false))
+                let extracted_values: Vec<Option<bool>> = values.iter()
+                    .map(|val| val.extract::<Option<bool>>(py).unwrap_or(None))
                     .collect();
-                Series::new(name.into(), extracted_values) // Convert name to PlSmallStr
+                Series::new(name.into(), extracted_values)
             } else {
-                // Fallback for unsupported types
                 return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
                     "Unsupported value type in column: {}",
                     name
                 )));
             };
-
-            // Add the Series to the columns vector
             columns.push(series);
         } else {
-            // Handle the case where the column is empty
             return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                 "Column {} has no values",
                 name
@@ -139,7 +136,6 @@ fn py_dict_of_lists_to_rust_polars_df(py: Python, dict: &PyAny) -> PyResult<Data
         }
     }
 
-    // Create a DataFrame from the columns
     DataFrame::new(columns).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
             "Failed to create DataFrame: {}",
@@ -157,14 +153,16 @@ fn py_dict_of_lists_to_rust_polars_df(py: Python, dict: &PyAny) -> PyResult<Data
 /// :return: The string representation of the value for Excel.
 fn convert_anyvalue_to_string(value: AnyValue) -> String {
     match value {
-        AnyValue::String(val) => val.to_string(),   // For string values
-        AnyValue::Int32(val) => val.to_string(),  // For 32-bit integers
-        AnyValue::Int64(val) => val.to_string(),  // For 64-bit integers
-        AnyValue::Float64(val) => val.to_string(), // For floating-point values
-        AnyValue::Boolean(val) => val.to_string(), // For boolean values
-        _ => value.to_string(), // Fallback for other types
+        AnyValue::Null => "".to_string(),        // For null values, return an empty string
+        AnyValue::String(val) => val.to_string(),
+        AnyValue::Int32(val) => val.to_string(),
+        AnyValue::Int64(val) => val.to_string(),
+        AnyValue::Float64(val) => val.to_string(),
+        AnyValue::Boolean(val) => val.to_string(),
+        _ => value.to_string(),
     }
 }
+
 
 /// Add data from a Polars DataFrame to an Excel worksheet by index.
 ///

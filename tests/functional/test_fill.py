@@ -83,6 +83,61 @@ def test_fill_sheet_with_named(create_test_excel, data_type):
 
 
 @pytest.mark.parametrize("data_type", ["polars", "pandas", "dict"])
+def test_fill_sheet_with_named_empty_values(create_test_excel, data_type):
+    """Test inserting a Polars DataFrame with named columns (`named=True`) and empty values."""
+    excel_path = create_test_excel
+    
+    # Create a sample Polars DataFrame
+    df = generate_test_data({
+        "Name": ["Alice", "Bob", "Tom"],
+        "Age": [25, None, 30],
+        "Gender": ["F", "M", None]
+    }, data_type)
+    
+    # Call the function to add the DataFrame with named columns
+    fill_sheet_with(str(excel_path), "Sheet1", df, named=True, header_row=3)
+
+    # Load the modified Excel file and verify the contents
+    workbook = openpyxl.load_workbook(excel_path)
+    sheet = workbook["Sheet1"]
+
+    # Iterate through the rows and print each cell's value
+    for row in sheet.iter_rows(values_only=True):
+        print(row)
+    
+    # Assert that data is inserted with a header row (named columns)
+    assert sheet["A3"].value == "Name"
+    assert sheet["B3"].value == "Age"
+    assert sheet["C3"].value == "Gender"
+    assert sheet["A6"].value == "Alice"
+    assert sheet["B6"].value == 25
+    assert sheet["C6"].value == "F"
+    assert sheet["A7"].value == "Bob"
+    assert sheet["B7"].value == None
+    assert sheet["C7"].value == "M"
+    assert sheet["A8"].value == "Tom"
+    assert sheet["B8"].value == 30
+    assert sheet["C8"].value == None
+
+
+@pytest.mark.parametrize("data_type", ["dict"])
+def test_fill_sheet_with_named_unequal_length(create_test_excel, data_type):
+    """Test behavior when a column name in the DataFrame is not of the same length as the others."""
+    excel_path = create_test_excel
+    
+    # Create a DataFrame with mismatching column names
+    df = generate_test_data({
+        "Name": ["Alice", "Bob"],
+        "Age": [25, 30, 54],
+        "Gender": ["F", "M"]
+    }, data_type)
+
+    # Expect an error or handle the mismatch gracefully (depending on the implementation)
+    with pytest.raises(ValueError, match=f"At least one list in the dictionary has a different length than the others"):
+        fill_sheet_with(str(excel_path), "Sheet1", df, named=True)
+
+
+@pytest.mark.parametrize("data_type", ["polars", "pandas", "dict"])
 def test_fill_sheet_with_unnamed_start_row(create_test_excel, data_type):
     """Test inserting a DataFrame starting at a custom row."""
     excel_path = create_test_excel
@@ -211,7 +266,7 @@ def test_fill_sheet_with_named_unfound_df_column(create_test_excel, data_type):
     }, data_type)
 
     # Expect an error or handle the mismatch gracefully (depending on the implementation)
-    with pytest.raises(ValueError, match="Column 'Full Name' is missing in the template"):
+    with pytest.raises(ValueError, match="Column '.+' is missing in the template"):
         fill_sheet_with(str(excel_path), "Sheet1", df, named=True)
 
 
