@@ -16,20 +16,38 @@ Create an Excel file test.xlsx with a few rows and columns in a sheet named "She
 
 ```python
 import pandas as pd
+import polars as pl
 import ez_excel_mgt as ezex
-
-# Create a Pandas DataFrame
-df = pd.DataFrame({
-    "Name": ["Alice", "Bob", "Charlie"],
-    "Age": [25, 30, 35]
-})
 
 # Define the sheet name and Excel file path
 sheet_name = "Sheet1"
 excel_file_path = "template.xlsx"
 
-# Call the function to write the DataFrame to the existing sheet
-ezex.will_sheet_with(excel_file_path, sheet_name, df)
+# Create a Pandas DataFrame
+df_pandas = pd.DataFrame({
+    "Name": ["Alice", "Bob", "Charlie"],
+    "Age": [25, 30, 35]
+})
+
+# Call the function to append the DataFrame to the existing sheet using column names located at row 3
+ezex.fill_sheet_with(excel_file_path, sheet_name, df_pandas, named=True, header_row=3)
+
+# Create a Polars DataFrame
+df_polars = pl.DataFrame({
+    "Name": ["Philippe", "Anatole"],
+    "Age": [65, 90]
+})
+
+# Call the function to write the DataFrame to the existing sheet and overwrite existing data (but not deleting rows beyond)
+ezex.fill_sheet_with(excel_file_path, sheet_name, df_polars, named=True, header_row=3, overwrite=True)
+
+df_dict = {
+    "Name": ["Mirlinda", "Emilie"],
+    "Age": [35, 40]
+}
+
+# Call the function to write the DataFrame to the existing sheet and overwrite existing data as of row 6
+ezex.fill_sheet_with(excel_file_path, sheet_name, df_dict, named=True, header_row=3, overwrite=True, start_row=6)
 ```
 
 ### Options

@@ -14,11 +14,8 @@ keywords = ["credentials", "keyring"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-<<<<<<< HEAD
 
 [tool.poetry.group.test.dependencies]
-=======
->>>>>>> 9109fc59342be6589e5182649d6034a8aef6e3ce
 pandas = "^2.2.2"
 polars = "1.7.1"
 pyarrow = "^17.0.0"
@@ -32,33 +29,8 @@ pytest-icdiff = "^0.9"
 pytest-clarity = "^1.0.1"
 pytest-cov = "^5.0.0"
 cibuildwheel = "^2.21.1"
+twine = "^5.1.1"
 
 [build-system]
-<<<<<<< HEAD
 requires = ["maturin>=1.7.1", "setuptools", "cibuildwheel>=2.0"]
 build-backend = "maturin"
-
-# [tool.cibuildwheel]
-# skip = "cp36-* cp37-* cp38-* cp39-* cp313-*"
-# container-engine = "docker"
-
-# # cibuildwheel configuration to build for macOS, Linux (via Docker), and Windows
-# # Build wheels for macOS and Linux on a macOS system using Docker for Linux.
-# # Cross-compilation for Windows should happen in CI.
-
-# # Limit the platforms to macOS, Linux, and Windows
-# archs = ["x86_64", "arm64"]
-
-# [tool.cibuildwheel.macos]
-# archs = ["x86_64", "arm64"]  # Build for both Intel and Apple Silicon on macOS
-
-# [tool.cibuildwheel.linux]
-# archs = ["x86_64"]            # Only x86_64 architecture for Linux using manylinux
-# manylinux = "manylinux_2_28"  # This is the default manylinux image version
-
-# [tool.cibuildwheel.windows]
-# archs = ["x86_64"]            # Only x86_64 architecture for Windows wheels
-=======
-requires = ["maturin>=1.7.1", "setuptools"]
-build-backend = "maturin"
->>>>>>> 9109fc59342be6589e5182649d6034a8aef6e3ce
