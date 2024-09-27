@@ -14,8 +14,11 @@ keywords = ["credentials", "keyring"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+<<<<<<< HEAD
 
 [tool.poetry.group.test.dependencies]
+=======
+>>>>>>> 9109fc59342be6589e5182649d6034a8aef6e3ce
 pandas = "^2.2.2"
 polars = "1.7.1"
 pyarrow = "^17.0.0"
@@ -31,6 +34,7 @@ pytest-cov = "^5.0.0"
 cibuildwheel = "^2.21.1"
 
 [build-system]
+<<<<<<< HEAD
 requires = ["maturin>=1.7.1", "setuptools", "cibuildwheel>=2.0"]
 build-backend = "maturin"
 
@@ -54,3 +58,7 @@ build-backend = "maturin"
 
 # [tool.cibuildwheel.windows]
 # archs = ["x86_64"]            # Only x86_64 architecture for Windows wheels
+=======
+requires = ["maturin>=1.7.1", "setuptools"]
+build-backend = "maturin"
+>>>>>>> 9109fc59342be6589e5182649d6034a8aef6e3ce
