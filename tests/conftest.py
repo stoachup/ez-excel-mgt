@@ -27,7 +27,7 @@ def create_test_excel(tmp_path):
     # Write to the temporary file
     workbook.save(excel_path)
     
-    return excel_path
+    return excel_path, 3
 
 
 @pytest.fixture(scope="function")

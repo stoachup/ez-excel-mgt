@@ -52,7 +52,7 @@ push            = false
         'version = "{version}"',
     ]
     "cargo.toml" = [
-        'version = "{version}"',
+        '^version = "{version}"',
     ]
 
 [tool.isort]

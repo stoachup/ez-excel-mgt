@@ -6,8 +6,8 @@ edition = "2018"
 [dependencies]
 log = "0.4.22"
 env_logger = "0.11.5"
-pyo3 = { version = "0.3.2", features = ["extension-module"] }
-polars = { version = "0.3.2", features = ["serde", "ipc"] }
+pyo3 = { version = "0.18.0", features = ["extension-module"] }
+polars = { version = "0.43.1", features = ["serde", "ipc"] }
 umya-spreadsheet = "2.0.2"
 
 [lib]
