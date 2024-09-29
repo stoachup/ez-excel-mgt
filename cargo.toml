@@ -20,14 +20,14 @@ include = [
     "src/**/*.rs",  # All Rust source files
     "pyproject.toml",  # Your Python project metadata
     "Cargo.toml",  # Your Rust project metadata
-    "README.md",  # Include the README file
+    "README.rst",  # Include the README file
     "LICENSE",    # Include the LICENSE file
+    "example.py"
 ]
 exclude = [
     "tests",  # Exclude the tests directory
     "target",
     "example*",  # Exclude example files
-    "example.*",
     "*.lock",  # Exclude any lock files
     "wheelhouse",
 ]

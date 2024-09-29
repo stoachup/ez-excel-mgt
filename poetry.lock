@@ -1528,6 +1528,17 @@ socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
+name = "xlsx2csv"
+version = "0.8.3"
+description = "xlsx to csv converter"
+optional = false
+python-versions = "*"
+files = [
+    {file = "xlsx2csv-0.8.3-py3-none-any.whl", hash = "sha256:e2cefc2899301f9328f0136fa00e9c4b07b69f255d6bbbc7f759254877e3a106"},
+    {file = "xlsx2csv-0.8.3.tar.gz", hash = "sha256:6c65d5989e8d3f14dd7296d425d693a67f51899d0c8e1ed7bcbf9ccb18223734"},
+]
+
+[[package]]
 name = "zipp"
 version = "3.20.2"
 description = "Backport of pathlib-compatible object wrapper for zip files"
@@ -1549,4 +1560,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "181a7e71e50c68815e2cadd2ccb9fea6edd5d17988f5ead14ed169d7b587e27a"
+content-hash = "a8f9ceb05439430cccc70ac404cb3b9cb9bb6aad45219de11b2d593fe4b05d05"

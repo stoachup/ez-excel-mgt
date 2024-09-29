@@ -4,7 +4,7 @@ version = "0.4.1"
 description = "Rust-powered Python module for Excel manipulation"
 authors = ["Christophe Druet <christophe@stoachup.com>"]
 license = "MIT"
-readme = "README.md"
+readme = "README.rst"
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Rust",
@@ -29,11 +29,12 @@ python = "^3.10"
 pandas = "^2.2.2"
 polars = "1.7.1"
 pyarrow = "^17.0.0"
+openpyxl = "^3.1.5"
+xlsx2csv = "^0.8.3"
 
 [tool.poetry.group.dev.dependencies]
 maturin = "^1.7.1"
 pytest = "^8.3.3"
-openpyxl = "^3.1.5"
 pytest-sugar = "^1.0.0"
 pytest-icdiff = "^0.9"
 pytest-clarity = "^1.0.1"

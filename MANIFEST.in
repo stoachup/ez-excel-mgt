@@ -1,6 +1,6 @@
 include Cargo.toml
 include pyproject.toml
-include README.md
+include README.rst
 include LICENSE
 
 # Exclude unnecessary directories
