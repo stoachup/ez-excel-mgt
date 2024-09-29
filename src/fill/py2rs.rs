@@ -102,8 +102,10 @@ fn py_pandas_df_to_rust_polars_df(py: Python, df: &PyAny) -> PyResult<DataFrame>
 /// :param max_column_len: The maximum length of the column, used to ensure consistent Series length.
 /// :return: A PyResult containing the constructed Series or an error if the type is unsupported.
 fn extract_series_from_vec_of_optional_py_objects(py: Python, column: &Vec<Option<PyObject>>, name: &str, max_column_len: usize) -> PyResult<Series> {
-    // Determine the type of the first value to infer the column type
-    if let Some(Some(value)) = column.get(0) {
+    // Find the first non-null value to infer the column type
+    let first_non_null = column.iter().flatten().next(); // Find the first non-None value
+
+    if let Some(value) = first_non_null {
         let first_value = value.as_ref(py);
         if first_value.is_instance(py.get_type::<pyo3::types::PyString>())? {
             // Handle String type
@@ -141,19 +143,18 @@ fn extract_series_from_vec_of_optional_py_objects(py: Python, column: &Vec<Optio
                 })
                 .collect();
             return Ok(Series::new(name.into(), extracted_values));
-        }
-        else {
+        } else {
             let err_msg = format!("Unsupported value type in column");
             error!("{}", err_msg);
             Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg))
         }
-    }
-    else {
-        let err_msg = format!("Column is empty");
+    } else {
+        let err_msg = format!("Column '{}' contains only None values or is empty", name);
         error!("{}", err_msg);
         Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg))
     }
 }
+
 
 ///
 /// This function takes a Python dictionary where each key corresponds to a list of values

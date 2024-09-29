@@ -186,6 +186,7 @@ test_jh*
 /CSVs
 /*.numbers
 /*.zip
+/*.xlsx
 
 *.whl
 
