@@ -1,11 +1,13 @@
-# Include the README file
+include Cargo.toml
+include pyproject.toml
 include README.md
-
-# Include the LICENSE file
 include LICENSE
 
-# Include the pyproject.toml file
-include pyproject.toml
+# Exclude unnecessary directories
+prune tests
+prune target
+prune wheelhouse
 
-# Include any additional documentation or config files (if needed)
-# recursive-include docs *
+# Exclude example files
+exclude example*
+exclude *.lock

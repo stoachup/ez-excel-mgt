@@ -11,7 +11,17 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
 ]
 keywords = ["credentials", "keyring"]
+packages = [
+    { include = "src" },
+]
 
+# If needed, you can use `exclude` to prevent certain files from being included
+exclude = [
+    "tests",  # Exclude the tests folder
+    "target",   # Exclude the target folder
+    "example*",  # Exclude the examples folder
+    "wheelhouse",
+]
 [tool.poetry.dependencies]
 python = "^3.10"
 
@@ -37,6 +47,12 @@ isort = "^5.13.2"
 [build-system]
 requires = ["maturin>=1.7.1", "setuptools", "cibuildwheel>=2.0"]
 build-backend = "maturin"
+
+[tool.setuptools.packages.find]
+where = ["."]  # list of folders that contain the packages (["."] by default)
+include = ["src/*"]  # package names should match these glob patterns (["*"] by default)
+exclude = ["test*", "wheelhouse", "target", "example*"]  # exclude packages matching these glob patterns (empty by default)
+namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
 
 [tool.bumpver]
 current_version = "0.4.0"

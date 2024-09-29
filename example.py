@@ -12,4 +12,4 @@ sheet_name = "Sheet1"
 excel_file_path = "template.xlsx"
 
 # Call the function to write the DataFrame to the existing sheet
-ezex.add_df_to_sheet(df, sheet_name, excel_file_path, named=True, header_row=3, overwrite=True)
+ezex.add_df_to_sheet(df, sheet_name, excel_file_path, header_row=3, overwrite=True)
