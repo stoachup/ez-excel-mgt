@@ -2,10 +2,19 @@
 use log::{debug, info, warn, error};
 use pyo3::prelude::*;
 use pyo3::types::PyAny;
+use pyo3::exceptions::{PyImportError, PyRuntimeError, PyTypeError, PyValueError};
+use pyo3::{PyErr, PyTypeInfo};
 use polars::prelude::*;
 use std::collections::HashMap;
 use std::fmt;
 
+fn py_err<E>(err_msg: String) -> PyErr
+where
+    E: PyTypeInfo,
+{
+    error!("{}", err_msg);
+    PyErr::new::<E, _>(err_msg)
+}
 
 /// Convert a Python Polars DataFrame to a Rust Polars DataFrame.
 ///
@@ -17,55 +26,43 @@ use std::fmt;
 /// :return: A Rust Polars DataFrame.
 fn py_polars_df_to_rust_polars_df(py: Python, py_df: &PyAny) -> PyResult<DataFrame> {
     let pyarrow: &PyModule = py.import("pyarrow").map_err(|_| {
-        let err_msg = format!("Failed to import pyarrow module.");
-        error!("{}", err_msg);
-        PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg)
+        py_err::<PyImportError>(format!("Failed to import pyarrow module."))
     })?;
 
     let arrow_table: &PyAny = py_df.call_method0("to_arrow").map_err(|_| {
-        let err_msg = format!("Failed to convert DataFrame to Arrow format.");
-        error!("{}", err_msg);
-        PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg)
+        py_err::<PyRuntimeError>(format!("Failed to convert DataFrame to Arrow format."))
     })?;
 
     // Create an in-memory output stream
     let buffer: &PyAny = pyarrow.call_method0("BufferOutputStream").map_err(|_| {
-        let err_msg = format!("Failed to create buffer stream.");
-        error!("{}", err_msg);
-        PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg)
+        py_err::<PyRuntimeError>(format!("Failed to create buffer stream."))
     })?;
 
     // Use RecordBatchFileWriter to serialize the Arrow table into the buffer
     let writer: &PyAny = pyarrow
         .call_method1("RecordBatchFileWriter", (buffer, arrow_table.getattr("schema").unwrap()))
         .map_err(|_| {
-            let err_msg = format!("Failed to create Arrow RecordBatchFileWriter.");
-            error!("{}", err_msg);
-            PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg)
+            py_err::<PyRuntimeError>(format!("Failed to create Arrow RecordBatchFileWriter."))
         })?;
     writer.call_method1("write_table", (arrow_table,)).map_err(|_| {
-        let err_msg = format!("Failed to write Arrow table.");
-        error!("{}", err_msg);
-        PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg)
-    })?;
+            py_err::<PyRuntimeError>(format!("Failed to write Arrow table."))
+        })?;
     writer.call_method0("close").map_err(|_| {
-        let err_msg = format!("Failed to close Arrow writer.");
-        error!("{}", err_msg);
-        PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg)
+        py_err::<PyRuntimeError>(format!("Failed to close Arrow writer."))
     })?;
 
     // Extract the buffer's contents as bytes
     let buffer_bytes: Vec<u8> = buffer
         .call_method0("getvalue")
-        .map_err(|_| PyErr::new::<pyo3::exceptions::PyTypeError, _>("Failed to extract buffer."))?
+        .map_err(|_| py_err::<PyRuntimeError>(format!("Failed to extract buffer.")))?
         .extract()
-        .map_err(|_| PyErr::new::<pyo3::exceptions::PyTypeError, _>("Failed to extract buffer bytes."))?;
+        .map_err(|_| py_err::<PyRuntimeError>(format!("Failed to extract buffer bytes.")))?;
 
     // Deserialize into Rust Polars DataFrame using IpcReader
     let cursor = std::io::Cursor::new(buffer_bytes);
     IpcReader::new(cursor)
         .finish()
-        .map_err(|_| PyErr::new::<pyo3::exceptions::PyTypeError, _>("Failed to deserialize Arrow data."))
+        .map_err(|_| py_err::<PyRuntimeError>(format!("Failed to deserialize Arrow data.")))
 }
 
 /// Convert a Pandas DataFrame to a Polars DataFrame in Rust.
@@ -78,14 +75,10 @@ fn py_polars_df_to_rust_polars_df(py: Python, py_df: &PyAny) -> PyResult<DataFra
 /// :return: A Rust Polars DataFrame.
 fn py_pandas_df_to_rust_polars_df(py: Python, df: &PyAny) -> PyResult<DataFrame> {
     let polars: &PyModule = py.import("polars").map_err(|_| {
-        let err_msg = format!("Failed to import polars module.");
-        error!("{}", err_msg);
-        PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg)
+        py_err::<PyImportError>(format!("Failed to import polars module."))
     })?;
     let df_polars: &PyAny = polars.call_method1("DataFrame", (df,)).map_err(|_| {
-        let err_msg = format!("Failed to convert Pandas DataFrame to Polars.");
-        error!("{}", err_msg);  
-        PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg)
+        py_err::<PyTypeError>(format!("Failed to convert Pandas DataFrame to Polars."))
     })?;
     py_polars_df_to_rust_polars_df(py, df_polars)
 }
@@ -144,14 +137,10 @@ fn extract_series_from_vec_of_optional_py_objects(py: Python, column: &Vec<Optio
                 .collect();
             return Ok(Series::new(name.into(), extracted_values));
         } else {
-            let err_msg = format!("Unsupported value type in column");
-            error!("{}", err_msg);
-            Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg))
+            Err(py_err::<PyTypeError>(format!("Unsupported value type in column")))
         }
     } else {
-        let err_msg = format!("Column '{}' contains only None values or is empty", name);
-        error!("{}", err_msg);
-        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg))
+        Err(py_err::<PyTypeError>(format!("Column '{}' contains only None values or is empty", name)))
     }
 }
 
@@ -166,7 +155,7 @@ fn extract_series_from_vec_of_optional_py_objects(py: Python, column: &Vec<Optio
 fn py_dict_of_lists_to_rust_polars_df(py: Python, dict_of_lists: &PyAny) -> PyResult<DataFrame> {
     // Check if df is a HashMap<String, Vec<Option<PyObject>>>
     let dict_of_lists: HashMap<String, Vec<Option<PyObject>>> = dict_of_lists.extract().map_err(|_| {
-        PyErr::new::<pyo3::exceptions::PyTypeError, _>("Structure of dictionary of lists is not correct.")
+        py_err::<PyTypeError>(format!("Structure of dictionary of lists is not correct."))
     })?;
 
     // Create a vector to store the columns
@@ -179,8 +168,7 @@ fn py_dict_of_lists_to_rust_polars_df(py: Python, dict_of_lists: &PyAny) -> PyRe
     for (name, values) in dict_of_lists {
         //
         if values.len() != max_column_len {
-            let err_msg = format!("At least one list in the dictionary of lists has a different length than the others.");
-            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(err_msg)); // Handle the error as needed
+            return Err(py_err::<PyValueError>(format!("At least one list in the dictionary of lists has a different length than the others.")));
         }
 
         // Extract the series from the list of optional PyObject
@@ -189,10 +177,7 @@ fn py_dict_of_lists_to_rust_polars_df(py: Python, dict_of_lists: &PyAny) -> PyRe
     }
 
     DataFrame::new(columns).map_err(|e| {
-        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-            "Failed to create DataFrame from dictionary of lists: {}.",
-            e
-        ))
+        py_err::<PyTypeError>(format!("Failed to create DataFrame from dictionary of lists: {}.", e))
     })
 }
 
@@ -209,19 +194,18 @@ fn py_dict_of_lists_to_rust_polars_df(py: Python, dict_of_lists: &PyAny) -> PyRe
 fn py_list_of_lists_to_rust_polars_df(py: Python, list_of_lists: &PyAny, columns: &PyAny) -> PyResult<DataFrame> {
     // Extract column names from the Python list
     let columns: Vec<String> = columns.extract().map_err(|_| {
-            PyErr::new::<pyo3::exceptions::PyTypeError, _>("List of columns is not correct.")
-        })?;
+        py_err::<PyTypeError>(format!("List of columns is not correct."))
+    })?;
     
     // Extract the list of lists from Python
     let list_of_lists: Vec<Vec<Option<PyObject>>> = list_of_lists.extract().map_err(|_| {
-        PyErr::new::<pyo3::exceptions::PyTypeError, _>("Structure of list of lists is not correct.")
+        py_err::<PyTypeError>(format!("Structure of list of lists is not correct."))
     })?;
     
     // Check if the number of columns and number of lists match
     if columns.len() != list_of_lists.len() {
-        let err_msg = format!("List of columns and list of lists have different lengths.");
-        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(err_msg));
-    }
+        return Err(py_err::<PyValueError>(format!("List of columns and list of lists have different lengths.")))
+        }
 
     // Create a vector to store the columns
     let mut df_columns: Vec<Series> = Vec::with_capacity(columns.len());
@@ -241,8 +225,7 @@ fn py_list_of_lists_to_rust_polars_df(py: Python, list_of_lists: &PyAny, columns
 
         // Check if the length of the current list matches the max length
         else if values.len() != max_column_len {
-            let err_msg = format!("At least one list in the list of lists has a different length than the others.");
-            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(err_msg));
+            return Err(py_err::<PyValueError>(format!("At least one list in the list of lists has a different length than the others.")));
         }
 
         // Convert the list of optional PyObject values into a Polars Series
@@ -252,8 +235,7 @@ fn py_list_of_lists_to_rust_polars_df(py: Python, list_of_lists: &PyAny, columns
 
     // Create a DataFrame from the series of columns
     DataFrame::new(df_columns).map_err(|e| {
-        let err_msg = format!("Failed to create DataFrame from list of lists: {}.", e);
-        PyErr::new::<pyo3::exceptions::PyValueError, _>(err_msg)
+        py_err::<PyRuntimeError>(format!("Failed to create DataFrame from list of lists: {}.", e))
     })
 }
 
@@ -266,14 +248,12 @@ fn py_list_of_lists_to_rust_polars_df(py: Python, list_of_lists: &PyAny, columns
 fn get_dataframe_type<'py>(py: Python<'py>, module_name: &str) -> PyResult<&'py PyAny> {
     // Import the module
     let module = PyModule::import(py, module_name).map_err(|e| {
-        let err_msg = format!("Failed to import {} module: {}.", module_name, e);
-        PyErr::new::<pyo3::exceptions::PyImportError, _>(err_msg)
+        py_err::<PyImportError>(format!("Failed to import {} module: {}.", module_name, e))
     })?;
     
     // Get the DataFrame type from the module
     module.getattr("DataFrame").map_err(|e| {
-        let err_msg = format!("Failed to get DataFrame from module {}: {}.", module_name, e);
-        PyErr::new::<pyo3::exceptions::PyAttributeError, _>(err_msg)
+        py_err::<PyRuntimeError>(format!("Failed to get DataFrame from module {}: {}.", module_name, e))
     })
 }
 
@@ -326,9 +306,7 @@ pub fn get_datatype(py: Python, df: &PyAny) -> PyResult<OriginalDataType> {
         Ok(OriginalDataType::ListOfLists)
     } else {
         // Handle case where df is neither a Pandas DataFrame nor a Polars DataFrame nor a dictionary
-        let err_msg = format!("Input is neither a Pandas DataFrame nor a Polars DataFrame nor a dictionary of lists."); 
-        error!("{}", err_msg);
-        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(err_msg))
+        Err(py_err::<PyTypeError>(format!("Input is neither a Pandas DataFrame nor a Polars DataFrame nor a dictionary of lists.")))
     }
 }
 
@@ -361,14 +339,10 @@ pub fn convert(py: Python, data_type: OriginalDataType, df: &PyAny, columns: Opt
             Ok(py_dict_of_lists_to_rust_polars_df(py, df)?)
         },
         (_, Some(_)) => {
-            let err_msg = format!("Column names should not be provided for Pandas, Polars and Dict of Lists.");
-            error!("{}", err_msg);
-            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(err_msg))
+            Err(py_err::<PyValueError>(format!("Column names should not be provided for Pandas, Polars and Dict of Lists.")))
         },
         (OriginalDataType::ListOfLists, None) => {
-            let err_msg = format!("Column names must be provided for List of Lists.");
-            error!("{}", err_msg);
-            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(err_msg))
+            Err(py_err::<PyValueError>(format!("Column names must be provided for List of Lists.")))
         }
     }
 }

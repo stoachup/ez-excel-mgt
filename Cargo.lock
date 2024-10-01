@@ -699,7 +699,7 @@ dependencies = [
 
 [[package]]
 name = "ez_excel_mgt"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "env_logger",
  "log",
