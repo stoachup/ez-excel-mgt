@@ -1,0 +1,38 @@
+# Easy Excel Management
+
+A Rust-powered Python module for efficient Excel file manipulation.
+
+## Installation
+
+Install the module using `pip` or your favorite package manager:
+
+```bash
+   pip install ez-excel-mgt
+```
+
+## Usage
+
+### Creating and Filling an Excel File
+
+Create an Excel file (`test.xlsx`) with a few rows and columns in a sheet named **"Sheet1"**.  
+The sheet name must **exactly match** the name you'll use in the code. The **last row** in the sheet should contain the headers (column names) like `"Name"` and `"Age"`. Make sure the column names match exactly the column names in the DataFrame.
+
+### Options
+
+- **column**: List of column names to use with a list of lists. This is optional if your DataFrame already has columns (Pandas, Polars or Dict).
+  
+- **header_row**: Specifies the row containing the headers. Options:
+  - "first": The first row is used as the header.
+  - "last" (default): The last row is used as the header.
+  - Integer > 0: The specific row number (1-based index) where the header is located.
+
+- **overwrite**: If `True`, existing data will be overwritten. Default is `False`.
+
+- **skip_nulls**: If `True`, null values in the data will be skipped. Default is `False`, which results in blanking cells for null values.
+
+- **strict**: If `True`, enforces strict matching: all column names must match exactly.
+
+### Example
+
+!md_include "../example.py"
+
