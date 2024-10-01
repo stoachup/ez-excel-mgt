@@ -74,4 +74,4 @@ def md_include(source_md_file_path, target_md_file_path):
 # Example usage
 if __name__ == "__main__":
     # Replace 'example.md' with the path to your actual markdown file
-    md_include('docs/readme.md', 'readme.md')
+    md_include('docs/readme.md', 'README.md')

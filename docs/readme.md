@@ -2,6 +2,8 @@
 
 A Rust-powered Python module for efficient Excel file manipulation.
 
+- **Filling**: Fill an existing sheet of an existing Excel file with data based on headers that are not necessarily in the first row of the sheet. Can handle Pandas, Polars and Dict of Lists. List of lists is also supported, provided the column names are provided too. Can handle overwriting existing data. Can skip nulls. Can handle strict matching of column names.
+
 ## Installation
 
 Install the module using `pip` or your favorite package manager:
@@ -12,10 +14,11 @@ Install the module using `pip` or your favorite package manager:
 
 ## Usage
 
-### Creating and Filling an Excel File
+### Filling an existing sheet in an Excel file
 
-Create an Excel file (`test.xlsx`) with a few rows and columns in a sheet named **"Sheet1"**.  
-The sheet name must **exactly match** the name you'll use in the code. The **last row** in the sheet should contain the headers (column names) like `"Name"` and `"Age"`. Make sure the column names match exactly the column names in the DataFrame.
+Let's assume test.xls contains a sheet **"Example"** with with a few rows and columns. Let's assume the column names are contained in the third row. 
+
+Data can be provided in a Pandas, Polars, Dict of Lists or List of Lists (with column names specified in another argument).
 
 ### Options
 
