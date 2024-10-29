@@ -6,6 +6,7 @@ use std::env;
 use std::io::Write;
 
 mod fill;
+mod copy;
 
 /// Python module initialization function.
 #[pymodule]
@@ -15,6 +16,7 @@ fn ez_excel_mgt(_py: Python, m: &PyModule) -> PyResult<()> {
 
     // Add functions to the Python module
     m.add_function(wrap_pyfunction!(fill::fill_sheet_with, m)?)?;
+    m.add_function(wrap_pyfunction!(copy::copy_range_between_files, m)?)?;
     Ok(())
 }
 

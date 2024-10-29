@@ -27,7 +27,7 @@ def create_test_excel(tmp_path):
     # Write to the temporary file
     workbook.save(excel_path)
     
-    return excel_path, 3
+    return str(excel_path), sheet.title, 3
 
 
 @pytest.fixture(scope="function")
@@ -54,4 +54,21 @@ def create_test_excel_commented(tmp_path):
     # Write to the temporary file
     workbook.save(excel_path)
     
-    return excel_path
+    return str(excel_path), sheet.title, 3
+
+
+@pytest.fixture(scope="function")
+def create_empty_test_excel(tmp_path):
+    """Fixture to create a temporary EmptyExcel file for testing."""
+    # Create a temporary file path for the Excel file
+    excel_path = tmp_path / "dest.xlsx"
+    
+    # Create a new workbook and add a sheet
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Test Sheet"
+    
+    # Write to the temporary file
+    workbook.save(excel_path)
+    
+    return str(excel_path), sheet.title, 0

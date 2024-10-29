@@ -24,7 +24,7 @@ def generate_test_data(data, data_type="polars"):
 
 def test_fill_sheet_with_list_of_lists_with_no_columns(create_test_excel):
     """Test inserting data at the end of the sheet."""
-    excel_path, header_row = create_test_excel
+    excel_path, sheet_name, header_row = create_test_excel
     
     # Create a sample Polars DataFrame
     df = generate_test_data({
@@ -36,12 +36,12 @@ def test_fill_sheet_with_list_of_lists_with_no_columns(create_test_excel):
     kwargs = { "header_row": header_row }
 
     with pytest.raises(ValueError, match="Column names must be provided for List of Lists."):
-        fill_sheet_with(df, str(excel_path), "Sheet1", **kwargs)
+        fill_sheet_with(df, str(excel_path), sheet_name, **kwargs)
 
 
 def test_fill_sheet_with_list_of_lists_with_not_enough_columns(create_test_excel):
     """Test inserting data at the end of the sheet."""
-    excel_path, header_row = create_test_excel
+    excel_path, sheet_name, header_row = create_test_excel
     
     # Create a sample Polars DataFrame
     df = generate_test_data({
@@ -54,13 +54,13 @@ def test_fill_sheet_with_list_of_lists_with_not_enough_columns(create_test_excel
     kwargs["columns"] = ["Age", "Gender"]
 
     with pytest.raises(ValueError, match="List of columns and list of lists have different lengths."):
-        fill_sheet_with(df, str(excel_path), "Sheet1", **kwargs)
+        fill_sheet_with(df, str(excel_path), sheet_name, **kwargs)
 
 
 @pytest.mark.parametrize("data_type", ["dict", "list"])
 def test_fill_sheet_with_list_or_dict_of_lists_of_unequal_length(create_test_excel, data_type):
     """Test behavior when a column in the DataFrame is not of the same length as the others."""
-    excel_path, header_row = create_test_excel
+    excel_path, sheet_name, header_row = create_test_excel
     
     # Create a DataFrame with mismatching column names
     df = generate_test_data({
@@ -76,13 +76,13 @@ def test_fill_sheet_with_list_or_dict_of_lists_of_unequal_length(create_test_exc
     # Expect an error or handle the mismatch gracefully (depending on the implementation)
     message = "At least one list in the (dictionary|list) of lists has a different length than the others."
     with pytest.raises(ValueError, match=message):
-        fill_sheet_with(df, str(excel_path), "Sheet1", **kwargs)
+        fill_sheet_with(df, str(excel_path), sheet_name, **kwargs)
 
 
 @pytest.mark.parametrize("data_type", ["pandas", "polars", "dict", "list"])
 def test_fill_sheet_with_strict_and_missing_column(create_test_excel, data_type):
     """Test behavior when a column in the DataFrame is not of the same length as the others."""
-    excel_path, header_row = create_test_excel
+    excel_path, sheet_name, header_row = create_test_excel
     
     # Create a DataFrame with mismatching column names
     df = generate_test_data({
@@ -97,13 +97,13 @@ def test_fill_sheet_with_strict_and_missing_column(create_test_excel, data_type)
     # Expect an error or handle the mismatch gracefully (depending on the implementation)
     message = "Column 'Name' in excel is missing in DataFrame."
     with pytest.raises(ValueError, match=message):
-        fill_sheet_with(df, str(excel_path), "Sheet1", **kwargs)
+        fill_sheet_with(df, str(excel_path), sheet_name, **kwargs)
 
 
 @pytest.mark.parametrize("data_type", ["pandas", "polars", "dict", "list"])
 def test_fill_sheet_with_strict_and_unfound_column(create_test_excel, data_type):
     """Test behavior when a column in the DataFrame is not of the same length as the others."""
-    excel_path, header_row = create_test_excel
+    excel_path, sheet_name, header_row = create_test_excel
     
     # Create a DataFrame with mismatching column names
     df = generate_test_data({
@@ -119,13 +119,13 @@ def test_fill_sheet_with_strict_and_unfound_column(create_test_excel, data_type)
     # Expect an error or handle the mismatch gracefully (depending on the implementation)
     message = "Column 'Name' in excel is missing in DataFrame."
     with pytest.raises(ValueError, match=message):
-        fill_sheet_with(df, str(excel_path), "Sheet1", **kwargs)
+        fill_sheet_with(df, str(excel_path), sheet_name, **kwargs)
 
 
 @pytest.mark.parametrize("data_type", ["polars", "pandas", "dict", "list"])
 def test_fill_sheet_with_append(create_test_excel, data_type):
     """Test inserting data at the end of the sheet."""
-    excel_path, header_row = create_test_excel
+    excel_path, sheet_name, header_row = create_test_excel
     
     # Create a sample Polars DataFrame
     df = generate_test_data({
@@ -138,11 +138,11 @@ def test_fill_sheet_with_append(create_test_excel, data_type):
     if data_type == "list":
         kwargs["columns"] = ["Name", "Age", "Gender"]
 
-    fill_sheet_with(df, str(excel_path), "Sheet1", **kwargs)
+    fill_sheet_with(df, str(excel_path), sheet_name, **kwargs)
 
     # Load the modified Excel file and verify the contents
     workbook = openpyxl.load_workbook(excel_path)
-    sheet = workbook["Sheet1"]
+    sheet = workbook[sheet_name]
     
     # Assert that data is inserted with a header row (named columns)
     assert sheet["A3"].value == "Name"
@@ -159,7 +159,7 @@ def test_fill_sheet_with_append(create_test_excel, data_type):
 @pytest.mark.parametrize("data_type", ["polars", "pandas", "dict", "list"])
 def test_fill_sheet_with_overwrite_longer_than_template(create_test_excel, data_type):
     """Test overwriting data in the sheet."""
-    excel_path, header_row = create_test_excel
+    excel_path, sheet_name, header_row = create_test_excel
     
     # Create a sample Polars DataFrame
     df = generate_test_data({
@@ -172,11 +172,11 @@ def test_fill_sheet_with_overwrite_longer_than_template(create_test_excel, data_
     if data_type == "list":
         kwargs["columns"] = ["Name", "Age", "Gender"]
         
-    fill_sheet_with(df, str(excel_path), "Sheet1", **kwargs)
+    fill_sheet_with(df, str(excel_path), sheet_name, **kwargs)
 
     # Load the modified Excel file and verify the contents
     workbook = openpyxl.load_workbook(excel_path)
-    sheet = workbook["Sheet1"]
+    sheet = workbook[sheet_name]
     
     # Assert that data is inserted with a header row (named columns)
     assert sheet["A3"].value == "Name"
@@ -193,7 +193,7 @@ def test_fill_sheet_with_overwrite_longer_than_template(create_test_excel, data_
 @pytest.mark.parametrize("data_type", ["polars", "pandas", "dict", "list"])
 def test_fill_sheet_with_overwrite_shorter_than_template(create_test_excel, data_type):
     """Test overwriting data in the sheet."""
-    excel_path, header_row = create_test_excel
+    excel_path, sheet_name, header_row = create_test_excel
     
     # Create a sample Polars DataFrame
     df = generate_test_data({
@@ -206,11 +206,11 @@ def test_fill_sheet_with_overwrite_shorter_than_template(create_test_excel, data
     if data_type == "list":
         kwargs["columns"] = ["Name", "Age", "Gender"]
         
-    fill_sheet_with(df, str(excel_path), "Sheet1", **kwargs)
+    fill_sheet_with(df, str(excel_path), sheet_name, **kwargs)
 
     # Load the modified Excel file and verify the contents
     workbook = openpyxl.load_workbook(excel_path)
-    sheet = workbook["Sheet1"]
+    sheet = workbook[sheet_name]
     
     # Assert that data is inserted with a header row (named columns)
     assert sheet["A3"].value == "Name"
@@ -227,7 +227,7 @@ def test_fill_sheet_with_overwrite_shorter_than_template(create_test_excel, data
 @pytest.mark.parametrize("data_type", ["polars", "pandas", "dict", "list"])
 def test_fill_sheet_with_overwrite_and_skip_null(create_test_excel, data_type):
     """Test inserting a Polars DataFrame with named columns (`named=True`) and empty values."""
-    excel_path, header_row = create_test_excel
+    excel_path, sheet_name, header_row = create_test_excel
     
     # Create a sample Polars DataFrame
     df = generate_test_data({
@@ -240,11 +240,11 @@ def test_fill_sheet_with_overwrite_and_skip_null(create_test_excel, data_type):
     if data_type == "list":
         kwargs["columns"] = ["Name", "Age", "Gender"]
         
-    fill_sheet_with(df, str(excel_path), "Sheet1", **kwargs)
+    fill_sheet_with(df, str(excel_path), sheet_name, **kwargs)
 
     # Load the modified Excel file and verify the contents
     workbook = openpyxl.load_workbook(excel_path)
-    sheet = workbook["Sheet1"]
+    sheet = workbook[sheet_name]
 
     # Assert that data is inserted with a header row (named columns)
     assert sheet["A3"].value == "Name"
@@ -263,7 +263,7 @@ def test_fill_sheet_with_overwrite_and_skip_null(create_test_excel, data_type):
 
 def test_fill_sheet_with_empty_column_in_list(create_test_excel):
     """Test behavior when an empty column is in the DataFrame."""
-    excel_path, header_row = create_test_excel
+    excel_path, sheet_name, header_row = create_test_excel
     
     # Create a DataFrame with mismatching column names
     df = generate_test_data({
@@ -275,11 +275,11 @@ def test_fill_sheet_with_empty_column_in_list(create_test_excel):
     kwargs = { "header_row": header_row }
     kwargs["columns"] = ["Name", "Age", "Gender"]
 
-    fill_sheet_with(df, str(excel_path), "Sheet1", **kwargs)
+    fill_sheet_with(df, str(excel_path), sheet_name, **kwargs)
 
     # Load the modified Excel file and verify the contents
     workbook = openpyxl.load_workbook(excel_path)
-    sheet = workbook["Sheet1"]
+    sheet = workbook[sheet_name]
 
     # Assert that data is inserted with a header row (named columns)
     assert sheet["A3"].value == "Name"
@@ -296,7 +296,7 @@ def test_fill_sheet_with_empty_column_in_list(create_test_excel):
 @pytest.mark.parametrize("data_type", ["polars", "pandas", "dict", "list"])
 def test_fill_sheet_with_multiple_overwrite(create_test_excel, data_type):
     """Test inserting data for specific columns in multiple calls."""
-    excel_path, header_row = create_test_excel
+    excel_path, sheet_name, header_row = create_test_excel
     
     # Create a sample Polars DataFrame
     df1 = generate_test_data({
@@ -308,7 +308,7 @@ def test_fill_sheet_with_multiple_overwrite(create_test_excel, data_type):
     if data_type == "list":
         kwargs1["columns"] = ["Name", "Age"]
         
-    fill_sheet_with(df1, str(excel_path), "Sheet1", **kwargs1)
+    fill_sheet_with(df1, str(excel_path), sheet_name, **kwargs1)
 
     df2 = generate_test_data({
         "Gender": ["F", "M", "M"]
@@ -318,59 +318,11 @@ def test_fill_sheet_with_multiple_overwrite(create_test_excel, data_type):
     if data_type == "list":
         kwargs2["columns"] = ["Gender"]
         
-    fill_sheet_with(df2, str(excel_path), "Sheet1", **kwargs2)
+    fill_sheet_with(df2, str(excel_path), sheet_name, **kwargs2)
 
     # Load the modified Excel file and verify the contents
     workbook = openpyxl.load_workbook(excel_path)
-    sheet = workbook["Sheet1"]
-
-    # Assert that data is inserted with a header row (named columns)
-    assert sheet["A3"].value == "Name"
-    assert sheet["B3"].value == "Age"
-    assert sheet["C3"].value == "Gender"
-    assert sheet["A4"].value == "Alice"
-    assert sheet["B4"].value == 25
-    assert sheet["C4"].value == "F"
-    assert sheet["A5"].value == "Bob"
-    assert sheet["B5"].value == 30
-    assert sheet["C5"].value == "M"
-    assert sheet["A6"].value == "Tom"
-    assert sheet["B6"].value == 35
-    assert sheet["C6"].value == "M"
-
-
-@pytest.mark.parametrize("data_type", ["polars", "pandas", "dict", "list"])
-def test_fill_sheet_with_multiple_overwrite(create_test_excel, data_type):
-    """Test inserting data for specific columns in multiple calls with empty values."""
-    excel_path, header_row = create_test_excel
-    
-    # Create a sample Polars DataFrame
-    df1 = generate_test_data({
-        "Name": ["Alice", "Bob", "Tom"],
-        "Age": [25, None, 35],
-        "Gender": [None, "M", None]
-    }, data_type)
-
-    kwargs1 = { "header_row": header_row, "overwrite": True, "skip_null": True }
-    if data_type == "list":
-        kwargs1["columns"] = ["Name", "Age", "Gender"]
-        
-    fill_sheet_with(df1, str(excel_path), "Sheet1", **kwargs1)
-
-    df2 = generate_test_data({
-        "Age": [None, 30, None],
-        "Gender": ["F", None, "M"]
-    }, data_type)
-
-    kwargs2 = { "header_row": header_row, "overwrite": True, "skip_null": True }
-    if data_type == "list":
-        kwargs2["columns"] = ["Age","Gender"]
-        
-    fill_sheet_with(df2, str(excel_path), "Sheet1", **kwargs2)
-
-    # Load the modified Excel file and verify the contents
-    workbook = openpyxl.load_workbook(excel_path)
-    sheet = workbook["Sheet1"]
+    sheet = workbook[sheet_name]
 
     # Assert that data is inserted with a header row (named columns)
     assert sheet["A3"].value == "Name"
