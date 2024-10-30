@@ -7,10 +7,10 @@ use umya_spreadsheet::{self, reader, writer};
 pub fn copy_range_from_to(
     source_file_path: &str,
     source_sheet_name: &str,
-    source_range: &Vec<u32>,
+    source_range: ((u32, u32), (u32, u32)),
     dest_file_path: &str,
     dest_sheet_name: &str,
-    dest_start_cell: &Vec<u32>,
+    dest_start_cell: (u32, u32),
     transpose: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     debug!("Copying range from {} to {}", source_file_path, dest_file_path);
@@ -23,15 +23,15 @@ pub fn copy_range_from_to(
     debug!("        dest_start_cell: {:?}", dest_start_cell);
     debug!("        transpose: {:?}", transpose);
     
-    // Extract values from the source_range vector
-    let start_row = source_range[0];
-    let start_col = source_range[1];
-    let end_row = source_range[2];
-    let end_col = source_range[3];
+    // Extract values from the source_range tuple
+    let start_row = source_range.0.0;
+    let start_col = source_range.0.1;
+    let end_row = source_range.1.0;
+    let end_col = source_range.1.1;
 
-    // Extract values from the dest_start_cell vector
-    let dest_row = dest_start_cell[0];
-    let dest_col = dest_start_cell[1];
+    // Extract values from the dest_start_cell tuple
+    let dest_row = dest_start_cell.0;
+    let dest_col = dest_start_cell.1;
 
     // Read the source workbook or return an error if it doesn't exist  
     let source_workbook = reader::xlsx::read(source_file_path).map_err(|_| {

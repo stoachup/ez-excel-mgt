@@ -38,11 +38,11 @@ pub fn transform_range_from_to(
     debug!("        dest_start_cell: {:?}", dest_start_cell);
     debug!("        action: {:?}", action);
     debug!("        mode: {:?}", mode);
-   // Extract values from the source_range tuple
-    let start_row: u32 = source_range.get_item(0)?.extract()?;
-    let start_col: u32 = source_range.get_item(1)?.extract()?;
-    let end_row: u32 = source_range.get_item(2)?.extract()?;
-    let end_col: u32 = source_range.get_item(3)?.extract()?;
+   // Extract values from the source_range tuple ((start_row, start_col), (end_row, end_col))
+    let start_row = source_range.get_item(0)?.get_item(0)?.extract()?;
+    let start_col = source_range.get_item(0)?.get_item(1)?.extract()?;
+    let end_row = source_range.get_item(1)?.get_item(0)?.extract()?;
+    let end_col = source_range.get_item(1)?.get_item(1)?.extract()?;
 
     // Read the source workbook or return an error if it doesn't exist  
     let source_workbook = reader::xlsx::read(source_file_path).map_err(|_| {

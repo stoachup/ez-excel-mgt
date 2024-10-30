@@ -8,7 +8,7 @@ def test_copy_range_between_files(create_test_excel, create_empty_test_excel):
     """Test copy."""
     source_file_path, source_sheet_name, _header_row = create_test_excel
     dest_file_path, dest_sheet_name, _header_row = create_empty_test_excel
-    copy_range_between_files(source_file_path, source_sheet_name, (1, 1, 5, 3), 
+    copy_range_between_files(source_file_path, source_sheet_name, ((1, 1), (5, 3)), 
                              dest_file_path, dest_sheet_name, (1, 1))
 
     assert Path(dest_file_path).exists()
@@ -27,7 +27,7 @@ def test_transpose_range_between_files(create_test_excel, create_empty_test_exce
     """Test copy."""
     source_file_path, source_sheet_name, _header_row = create_test_excel
     dest_file_path, dest_sheet_name, _header_row = create_empty_test_excel
-    copy_range_between_files(source_file_path, source_sheet_name, (1, 1, 5, 3), 
+    copy_range_between_files(source_file_path, source_sheet_name, ((1, 1), (5, 3)), 
                              dest_file_path, dest_sheet_name, (1, 1),
                              transpose=True)
 

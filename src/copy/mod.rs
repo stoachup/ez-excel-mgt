@@ -28,14 +28,16 @@ pub fn copy_range_between_files(
     debug!("        dest_sheet_name: {:?}", dest_sheet_name);
     debug!("        dest_start_cell: {:?}", dest_start_cell);
     debug!("        transpose: {:?}", transpose);
-    // convert PyTuple into Vec<u32>    
-    let source_range: Vec<u32> = source_range.iter()
-        .map(|x| x.extract::<u32>().map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid range value.")))
-        .collect::<Result<Vec<u32>, _>>()?; // Handle potential errors
-    // convert PyTuple into Vec<u32>
-    let dest_start_cell: Vec<u32> = dest_start_cell.iter()
-        .map(|x| x.extract::<u32>().map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid start cell value.")))
-        .collect::<Result<Vec<u32>, _>>()?; // Handle potential errors
+    // Extract values from the source_range tuple ((start_row, start_col), (end_row, end_col))
+    let start_row = source_range.get_item(0)?.get_item(0)?.extract()?;
+    let start_col = source_range.get_item(0)?.get_item(1)?.extract()?;
+    let end_row = source_range.get_item(1)?.get_item(0)?.extract()?;
+    let end_col = source_range.get_item(1)?.get_item(1)?.extract()?;
+
+    // Extract values from the dest_start_cell tuple (dest_row, dest_col)
+    let dest_row = dest_start_cell.get_item(0)?.extract()?;
+    let dest_col = dest_start_cell.get_item(1)?.extract()?;
+   
     // convert Option<bool> into bool
     let transpose = transpose.unwrap_or(false);
 
@@ -43,10 +45,10 @@ pub fn copy_range_between_files(
     match copy_range_from_to(
         source_file_path,
         source_sheet_name,
-        &source_range,
+        ((start_row, start_col), (end_row, end_col)),
         dest_file_path,
         dest_sheet_name,
-        &dest_start_cell,
+        (dest_row, dest_col),
         transpose,
     ) {
         Ok(_) => Ok(()), // Return Ok if the operation is successful

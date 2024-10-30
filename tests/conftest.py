@@ -61,7 +61,7 @@ def create_test_excel_commented(tmp_path):
 def create_empty_test_excel(tmp_path):
     """Fixture to create a temporary EmptyExcel file for testing."""
     # Create a temporary file path for the Excel file
-    excel_path = "./dest.xlsx"
+    excel_path = tmp_path / "dest.xlsx"
     
     # Create a new workbook and add a sheet
     workbook = openpyxl.Workbook()
