@@ -66,11 +66,11 @@ push            = false
 
 [tool.bumpver.file_patterns]
     "pyproject.toml" = [
-        'current_version = "{version}"',
-        'version = "{version}"',
+        '^current_version = "{version}"',
+        '^version = "{version}"',
     ]
     "cargo.toml" = [
-        'version = "{version}"',
+        '^version = "{version}"',
     ]
 
 [tool.isort]
