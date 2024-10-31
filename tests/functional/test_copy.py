@@ -42,3 +42,23 @@ def test_transpose_range_between_files(create_test_excel, create_empty_test_exce
     assert sheet["B1"].value == "Second row"
     assert sheet["D2"].value == 25
     assert sheet["E2"].value == 26
+
+
+def test_copy_range_between_files_and_coerce(create_test_excel_float, create_empty_test_excel):
+    """Test copy."""
+    source_file_path, source_sheet_name, _header_row = create_test_excel_float
+    dest_file_path, dest_sheet_name, _header_row = create_empty_test_excel
+    copy_range_between_files(source_file_path, source_sheet_name, ((4, 4), (4, 5)), 
+                             dest_file_path, dest_sheet_name, (1, 1),
+                             coerce="integer")
+
+    assert Path(dest_file_path).exists()
+
+    # Load the modified Excel file and verify the contents
+    workbook = openpyxl.load_workbook(dest_file_path)
+    sheet = workbook[dest_sheet_name]
+
+    # Assert that data is inserted with a header row (named columns)
+    assert sheet["A1"].value == 1234
+    assert sheet["A2"].value == 9876
+

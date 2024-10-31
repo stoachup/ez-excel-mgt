@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Exclude .lock files (poetry.lock, cargo.lock)
+*.lock
+
 # C extensions
 *.so
 

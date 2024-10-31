@@ -4,7 +4,9 @@ use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 
 pub mod copy;
+pub mod coerce;
 use copy::copy_range_from_to;
+use coerce::Coerce;
 
 
 // Function to copy a range from one sheet to another
@@ -17,7 +19,8 @@ pub fn copy_range_between_files(
     dest_file_path: &str,
     dest_sheet_name: &str,
     dest_start_cell: &PyTuple,
-    transpose: Option<bool>
+    transpose: Option<bool>,
+    coerce: Option<Coerce>,
 ) -> PyResult<()> {
     debug!("Copying range from {} to {}", source_file_path, dest_file_path);
     debug!("  ARGS:");
@@ -40,6 +43,7 @@ pub fn copy_range_between_files(
    
     // convert Option<bool> into bool
     let transpose = transpose.unwrap_or(false);
+    let coerce = coerce.unwrap_or(Coerce::String);
 
     // Replace the range copying logic with a call to copy_range_from_to
     match copy_range_from_to(
@@ -50,6 +54,7 @@ pub fn copy_range_between_files(
         dest_sheet_name,
         (dest_row, dest_col),
         transpose,
+        coerce,
     ) {
         Ok(_) => Ok(()), // Return Ok if the operation is successful
         Err(e) => Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Error copying range: {}", e))), // Convert error to PyErr

@@ -2,6 +2,7 @@
 use log::{debug, info, warn};
 use umya_spreadsheet::{self, reader, writer};
 
+use crate::copy::coerce::Coerce;
 
 // Function to copy a range from one sheet to another
 pub fn copy_range_from_to(
@@ -12,6 +13,7 @@ pub fn copy_range_from_to(
     dest_sheet_name: &str,
     dest_start_cell: (u32, u32),
     transpose: bool,
+    coerce: Coerce,
 ) -> Result<(), Box<dyn std::error::Error>> {
     debug!("Copying range from {} to {}", source_file_path, dest_file_path);
     debug!("  ARGS:");
@@ -52,7 +54,34 @@ pub fn copy_range_from_to(
         for row in start_row..=end_row {
             debug!("        ({}, {})", col, row);
             if let Some(source_cell) = source_sheet.get_cell((col, row)) {
-                let value = source_cell.get_value().to_string();
+                let mut value = source_cell.get_value().to_string();
+                value = match coerce {
+                    Coerce::Integer => {
+                        match value.parse::<i64>() {
+                            Ok(v) => {
+                                v.to_string()
+                            },
+                            Err(_) => {
+                                // Set value to an empty cell if parsing fails
+                                "".to_string()
+                            }
+                        }
+                    }
+                    Coerce::Float => {
+                        match value.parse::<i64>() {
+                            Ok(v) => {
+                                v.to_string()
+                            },
+                            Err(_) => {
+                                // Set value to an empty cell if parsing fails
+                                "".to_string()
+                            }
+                        }
+                    }
+                    _ => {
+                        value
+                    }
+                };
                 // Use match to handle transpose logic
                 match transpose {
                     false => {

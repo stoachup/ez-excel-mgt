@@ -31,6 +31,39 @@ def create_test_excel(tmp_path):
 
 
 @pytest.fixture(scope="function")
+def create_test_excel_float(tmp_path):
+    """Fixture to create a temporary Excel file for testing."""
+    # Create a temporary file path for the Excel file
+    excel_path = tmp_path / "test.xlsx"
+    
+    # Create a new workbook and add a sheet
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Sheet1"
+    
+    # Prepopulate the sheet with some data
+    sheet["A1"] = "First row"
+    sheet["A2"] = "Second row"
+    sheet["A3"] = "Name"
+    sheet["B3"] = "Age"
+    sheet["C3"] = "Gender"
+    sheet["D3"] = "Revenue"
+    sheet["A4"] = "Irène"
+    sheet["B4"] = 25
+    sheet["C4"] = "F"
+    sheet["D4"] = 1234.56
+    sheet["A5"] = "Matthieu"
+    sheet["B5"] = 26
+    sheet["C5"] = "M"
+    sheet["D5"] = 9876.54
+
+    # Write to the temporary file
+    workbook.save(excel_path)
+    
+    return str(excel_path), sheet.title, 3
+
+
+@pytest.fixture(scope="function")
 def create_test_excel_commented(tmp_path):
     """Fixture to create a temporary Excel file for testing with comments after the header row."""
     # Create a temporary file path for the Excel file
