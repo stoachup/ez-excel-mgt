@@ -4,6 +4,10 @@ A Rust-powered Python module for efficient Excel file manipulation.
 
 - **Filling**: Fill an existing sheet of an existing Excel file with data based on headers that are not necessarily in the first row of the sheet. Can handle Pandas, Polars and Dict of Lists. List of lists is also supported, provided the column names are provided too. Can handle overwriting existing data. Can skip nulls. Can handle strict matching of column names.
 
+- **Copying**: Copy a range of cells from one sheet of an Excel file to a sheet in another Excel file. Can handle transposing the range.
+
+- **Transforming**: Transform a range of cells from one sheet to another. Can handle summing, counting, averaging per row or column.
+
 ## Installation
 
 Install the module using `pip` or your favorite package manager:
@@ -129,6 +133,138 @@ if __name__ == "__main__":
     df = pl.read_excel(source=excel_path, sheet_name=sheet_name,
                        engine='xlsx2csv', engine_options={"skip_empty_lines": True, "skip_hidden_rows": False},
                        read_options={"skip_rows": 2, "has_header": True, "infer_schema_length": 0})
+    print(df)
+```
+
+### Copying a range of cells from one file/sheet to another file/sheet
+
+Let's assume test.xls contains a sheet **"Example"** with with a few rows and columns. Let's assume the column names are contained in the first row. 
+
+### Options
+
+- **transpose**: If `True`, the range is transposed.
+
+### Example
+
+```python
+import random
+import polars as pl
+import openpyxl
+import ez_excel_mgt as ezex
+
+# Function to convert a number to Excel column name
+def excel_column(row: int, col: int) -> str:
+    column_name = ""
+    while row > 0:
+        row, remainder = divmod(row - 1, 26)
+        column_name = chr(65 + remainder) + column_name
+    return f"{column_name}{col}"
+
+if __name__ == "__main__":
+    # Create a polars dataframe with 50 rows and 4 columns name Col 1, Col 2, Col 3, Col 4
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Example"
+    for i in range(4):
+        sheet[excel_column(i+1, 1)] = f"Col {i+1}"
+    workbook.save("example_copy.xlsx")
+    
+    df = pl.DataFrame({
+        "Col 1": [random.random() for _ in range(50)], 
+        "Col 2": [random.random() for _ in range(50)], 
+        "Col 3": [random.random() for _ in range(50)],
+        "Col 4": [random.random() for _ in range(50)]
+    })
+    ezex.fill_sheet_with(df, "example_copy.xlsx", "Example")
+    df = pl.read_excel(source="example_copy.xlsx", sheet_name="Example",
+                       engine='xlsx2csv', engine_options={"skip_empty_lines": True, "skip_hidden_rows": False},
+                       read_options={"has_header": True, "infer_schema_length": 0})
+    print(df)
+
+    # Open the destination excel file using openpyxl and create a new sheet named "Result", containing 50 headers in the first row named Row 1, Row 2, etc.
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Result"
+
+    # Update the loop to use the new function for naming columns
+    for i in range(50):
+        sheet[excel_column(i+1, 1)] = f"Row {i+1}"
+    workbook.save("result_copy.xlsx")
+    
+    # Call the function to copy the range of cells from the source file to the destination file (row, col; starting at 1)
+    ezex.copy_range_between_files("example_copy.xlsx", "Example", ((2, 1), (51, 4)), 
+                                  "result_copy.xlsx", "Result", (2, 1), True)
+
+    df = pl.read_excel(source="result_copy.xlsx", sheet_name="Result",
+                       engine='xlsx2csv', engine_options={"skip_empty_lines": True, "skip_hidden_rows": False},
+                       read_options={"has_header": True, "infer_schema_length": 0})
+    print(df)
+```
+
+### Copying and transforming a range of cells from one file/sheet to another file/sheet
+
+Only works with numbers! Can handle summing, counting, averaging per row or column.
+
+Let's assume test.xls contains a sheet **"Example"** with with a few rows and columns. Let's assume the column names are contained in the first row. 
+
+### Options
+
+- **transpose**: If `True`, the range is transposed.
+
+### Example
+
+```python
+import random
+import polars as pl
+import openpyxl
+import ez_excel_mgt as ezex
+
+# Function to convert a number to Excel column name
+def excel_column(row: int, col: int) -> str:
+    column_name = ""
+    while row > 0:
+        row, remainder = divmod(row - 1, 26)
+        column_name = chr(65 + remainder) + column_name
+    return f"{column_name}{col}"
+
+if __name__ == "__main__":
+    # Create a polars dataframe with 50 rows and 4 columns name Col 1, Col 2, Col 3, Col 4
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Example"
+    for i in range(4):
+        sheet[excel_column(i+1, 1)] = f"Col {i+1}"
+    workbook.save("example_copy.xlsx")
+    
+    df = pl.DataFrame({
+        "Col 1": [random.random() for _ in range(50)], 
+        "Col 2": [random.random() for _ in range(50)], 
+        "Col 3": [random.random() for _ in range(50)],
+        "Col 4": [random.random() for _ in range(50)]
+    })
+    ezex.fill_sheet_with(df, "example_copy.xlsx", "Example")
+    df = pl.read_excel(source="example_copy.xlsx", sheet_name="Example",
+                       engine='xlsx2csv', engine_options={"skip_empty_lines": True, "skip_hidden_rows": False},
+                       read_options={"has_header": True, "infer_schema_length": 0})
+    print(df)
+
+    # Open the destination excel file using openpyxl and create a new sheet named "Result", containing 50 headers in the first row named Row 1, Row 2, etc.
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Result"
+
+    # Update the loop to use the new function for naming columns
+    for i in range(50):
+        sheet[excel_column(i+1, 1)] = f"Row {i+1}"
+    workbook.save("result_copy.xlsx")
+    
+    # Call the function to copy the range of cells from the source file to the destination file (row, col; starting at 1)
+    ezex.copy_range_between_files("example_copy.xlsx", "Example", ((2, 1), (51, 4)), 
+                                  "result_copy.xlsx", "Result", (2, 1), True)
+
+    df = pl.read_excel(source="result_copy.xlsx", sheet_name="Result",
+                       engine='xlsx2csv', engine_options={"skip_empty_lines": True, "skip_hidden_rows": False},
+                       read_options={"has_header": True, "infer_schema_length": 0})
     print(df)
 ```
 

@@ -28,7 +28,7 @@ pub fn transform_range_from_to(
     mode: Mode,
     
 ) -> PyResult<()> {
-    debug!("Copying range from {} to {}", source_file_path, dest_file_path);
+    debug!("Copying and transforming range from {} to {}", source_file_path, dest_file_path);
     debug!("  ARGS:");
     debug!("        source_file_path: {:?}", source_file_path);
     debug!("        source_sheet_name: {:?}", source_sheet_name);

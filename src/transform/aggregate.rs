@@ -23,6 +23,8 @@ pub fn aggregate_range(
 ) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
     let mut sum_by_row: Vec<f64> = vec![0.0; (end_row - start_row + 1) as usize];   
     let mut sum_by_col: Vec<f64> = vec![0.0; (end_col - start_col + 1) as usize];
+    let mut count_not_numeric_by_row: Vec<f64> = vec![0.0; (end_row - start_row + 1) as usize];
+    let mut count_not_numeric_by_col: Vec<f64> = vec![0.0; (end_col - start_col + 1) as usize];
 
     for row in start_row..=end_row {
         for col in start_col..=end_col {
@@ -33,11 +35,11 @@ pub fn aggregate_range(
                         debug!("Row: {}, Col: {}, Value: {}", row, col, parsed_value);
                         sum_by_row[row as usize - start_row as usize] += parsed_value;
                         sum_by_col[col as usize - start_col as usize] += parsed_value;
+                        count_not_numeric_by_row[row as usize - start_row as usize] += 1.0;
+                        count_not_numeric_by_col[col as usize - start_col as usize] += 1.0;
                     }
                     Err(_) => {
-                        let cell_coord = to_excel_coords(col, row);
-                        let err_msg = format!("Non-numeric value found in cell {}: '{}'", cell_coord, value);
-                        return Err(err_msg.into());
+                        warn!("Non-numeric value found in cell {}: '{}'", to_excel_coords(col, row), value);
                     }
                 }
             }
@@ -50,17 +52,18 @@ pub fn aggregate_range(
     };
     debug!("Sum: {:?}", sum);
     let count = match mode {
-        Mode::Row => end_col - start_col + 1,
-        Mode::Column => end_row - start_row + 1,
+        Mode::Row => count_not_numeric_by_row,
+        Mode::Column => count_not_numeric_by_col,
     };
+    debug!("Count: {:?}", count);
 
     debug!("Action: {:?}", action);
     match action {
         Action::Sum => Ok(sum),
-        Action::Count => Ok(vec![count as f64; sum.len()]),
+        Action::Count => Ok(count),
         Action::Average => {
-            if count > 0 { 
-                Ok(sum.iter().map(|&s| s / count as f64).collect()) 
+            if count.iter().any(|&c| c > 0.0) { 
+                Ok(sum.iter().zip(count.iter()).map(|(&s, &c)| s / c).collect()) 
             } 
             else { 
                 Err("Division by zero".into()) 

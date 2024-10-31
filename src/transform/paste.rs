@@ -9,7 +9,7 @@ pub fn paste_vector_to_sheet(values: Vec<f64>, sheet: &mut Worksheet, start_row:
         match mode {
             Mode::Row => {
                 sheet.get_cell_mut((start_col, start_row + i as u32)).set_value(value.to_string());
-                debug!("Pasted value {} to cell ({}, {})", value, start_col - 1, start_row - 1+ i as u32);
+                debug!("Pasted value {} to cell ({}, {})", value, start_col - 1 + 1, start_row - 1 + i as u32);
             },
             Mode::Column => {
                 sheet.get_cell_mut((start_col + i as u32, start_row)).set_value(value.to_string());

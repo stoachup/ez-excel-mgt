@@ -53,20 +53,22 @@ pub fn copy_range_from_to(
             debug!("        ({}, {})", col, row);
             if let Some(source_cell) = source_sheet.get_cell((col, row)) {
                 let value = source_cell.get_value().to_string();
-                let d_col = dest_col + col - start_col;
-                let d_row = dest_row + row - start_row;
-                debug!("        value: {:?} from ({}, {}) to ({}, {})", value, col, row, d_col, d_row);
-                
                 // Use match to handle transpose logic
                 match transpose {
                     false => {
+                        let d_col = dest_col + col - start_col;
+                        let d_row = dest_row + row - start_row;
+                        debug!("        value: {:?} from ({}, {}) to ({}, {})", value, col, row, d_col, d_row);
                         dest_sheet
                             .get_cell_mut((d_col, d_row))
                             .set_value(value);
                     },
                     true => {
+                        let d_col = dest_col + row - start_row;
+                        let d_row = dest_row + col - start_col;
+                        debug!("        value: {:?} from ({}, {}) to ({}, {})", value, col, row, d_col, d_row);
                         dest_sheet
-                            .get_cell_mut((d_row, d_col))
+                            .get_cell_mut((d_col, d_row))
                             .set_value(value);
                     },
                 }
