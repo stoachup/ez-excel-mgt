@@ -141,7 +141,7 @@ def test_fill_sheet_with_strict_and_missing_column(create_test_excel, data_type)
         kwargs["columns"] = ["Age", "Gender"]
 
     # Expect an error or handle the mismatch gracefully (depending on the implementation)
-    message = "Header 'Name' in the sheet Sheet1 of the ExcelTemplate is missing in DataFrame."
+    message = "Header 'Name' in Sheet1 in the ExcelTemplate is missing in the DataFrame."
     with pytest.raises(ValueError, match=message):
         template = ExcelTemplate(excel_path)
         template.goto_sheet(sheet_name)
@@ -166,7 +166,7 @@ def test_fill_sheet_with_strict_and_unfound_column(create_test_excel, data_type)
         kwargs["columns"] = ["Full Name", "Age", "Gender"]
 
     # Expect an error or handle the mismatch gracefully (depending on the implementation)
-    message = "Header 'Name' in the sheet Sheet1 of the ExcelTemplate is missing in DataFrame."
+    message = "Header 'Name' in Sheet1 in the ExcelTemplate is missing in the DataFrame."
     with pytest.raises(ValueError, match=message):
         template = ExcelTemplate(excel_path)
         template.goto_sheet(sheet_name)

@@ -452,6 +452,7 @@ impl ExcelTemplate {
         strict: bool,
         skip_null: bool,
     ) -> Result<(), PyErr> {
+        let mut header_map = header_map.clone();
         let spreadsheet = Arc::get_mut(&mut self.spreadsheet)
         .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Cannot modify spreadsheet"))?;
         
@@ -466,12 +467,12 @@ impl ExcelTemplate {
 
         let df_headers: Vec<String> = df.get_column_names().iter().map(|s| s.to_string()).collect(); // Convert to Vec<String>
         
-        if strict {
-            // Check for missing columns in DataFrame
-            for col_name in header_map.keys() {
-                if !df_headers.contains(col_name) {
-                    let err_msg = format!("Header '{}' in the sheet {} of the ExcelTemplate is missing in DataFrame.", col_name, current_sheet_name);
-                    debug!("{}", err_msg);
+        // Check for missing columns in DataFrame
+        for col_name in header_map.keys() {
+            if !df_headers.contains(col_name) {
+                let err_msg = format!("Header '{}' in {} in the ExcelTemplate is missing in the DataFrame.", col_name, current_sheet_name);
+                warn!("{}", err_msg);
+                if strict {
                     return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(err_msg));
                 }
             }
@@ -480,9 +481,14 @@ impl ExcelTemplate {
         // Check for missing columns in the sheet
         for df_col in &df_headers {
             if !header_map.contains_key(df_col) {
-                let err_msg = format!("Header '{}' is missing in the sheet {} of the ExcelTemplate.", df_col, current_sheet_name);
-                debug!("{}", err_msg);
-                return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(err_msg));
+                let err_msg = format!("Header '{}' is missing in {} in the ExcelTemplate.", df_col, current_sheet_name);
+                warn!("{}", err_msg);
+                if strict {
+                    return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(err_msg));
+                }
+                else {
+                    header_map.insert(df_col.to_string(), worksheet.get_highest_column() + 1);
+                }
             }
         }
     
@@ -492,7 +498,7 @@ impl ExcelTemplate {
             .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("No cell specified. Use set_header_location to set the startingcell."))?;
     
         let (current_col, current_row) = current_cell.idx();
-        debug!("Current column: {}, Current row: {}", current_col, current_row);
+
         let height = df.height();
         for (header_name, idx) in header_map {
             debug!("Header {} in {}", header_name, idx);
