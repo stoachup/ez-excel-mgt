@@ -1,15 +1,18 @@
 # This project uses Poetry for dependency management.
 from pathlib import Path
 import openpyxl
-from ez_excel_mgt import copy_range_between_files
+from ez_excel_mgt import ExcelTemplate
 
 
 def test_copy_range_between_files(create_test_excel, create_empty_test_excel):
     """Test copy."""
     source_file_path, source_sheet_name, _header_row = create_test_excel
     dest_file_path, dest_sheet_name, _header_row = create_empty_test_excel
-    copy_range_between_files(source_file_path, source_sheet_name, ((1, 1), (5, 3)), 
-                             dest_file_path, dest_sheet_name, (1, 1))
+
+    template = ExcelTemplate(dest_file_path)
+    template.goto_sheet(dest_sheet_name, cell=(1, 1))
+    template.copy_range_from(source_file_path, source_sheet_name, ((1, 1), (5, 3)), None, None)
+    template.save(dest_file_path)
 
     assert Path(dest_file_path).exists()
 
@@ -27,9 +30,11 @@ def test_transpose_range_between_files(create_test_excel, create_empty_test_exce
     """Test copy."""
     source_file_path, source_sheet_name, _header_row = create_test_excel
     dest_file_path, dest_sheet_name, _header_row = create_empty_test_excel
-    copy_range_between_files(source_file_path, source_sheet_name, ((1, 1), (5, 3)), 
-                             dest_file_path, dest_sheet_name, (1, 1),
-                             transpose=True)
+
+    template = ExcelTemplate(dest_file_path)
+    template.goto_sheet(dest_sheet_name, cell=(1, 1))
+    template.copy_range_from(source_file_path, source_sheet_name, ((1, 1), (5, 3)), True, None)
+    template.save(dest_file_path)
 
     assert Path(dest_file_path).exists()
 
@@ -48,9 +53,14 @@ def test_copy_range_between_files_and_coerce(create_test_excel_float, create_emp
     """Test copy."""
     source_file_path, source_sheet_name, _header_row = create_test_excel_float
     dest_file_path, dest_sheet_name, _header_row = create_empty_test_excel
-    copy_range_between_files(source_file_path, source_sheet_name, ((4, 4), (4, 5)), 
-                             dest_file_path, dest_sheet_name, (1, 1),
-                             coerce="integer")
+
+    dest_sheet_name = "New Sheet"
+
+    template = ExcelTemplate(dest_file_path)
+    template.add_sheet(dest_sheet_name)
+    template.goto_sheet(dest_sheet_name, cell=(1, 1))
+    template.copy_range_from(source_file_path, source_sheet_name, ((4, 4), (5, 4)), None, 'int')
+    template.save(dest_file_path)
 
     assert Path(dest_file_path).exists()
 

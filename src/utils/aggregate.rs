@@ -2,8 +2,7 @@
 use log::{debug, info, warn};
 use umya_spreadsheet::{self, Worksheet};
 
-use crate::transform::action::Action;
-use crate::transform::mode::Mode;
+use crate::structs::{Action, Mode};
 
 // Helper to convert (col, row) into Excel-style coordinates like "A1"
 fn to_excel_coords(col: u32, row: u32) -> String {

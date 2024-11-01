@@ -1,16 +1,18 @@
 # This project uses Poetry for dependency management.
 from pathlib import Path
 import openpyxl
-from ez_excel_mgt import transform_range_from_to
+from ez_excel_mgt import ExcelTemplate
 
 
 def test_transform_sum_row(create_test_excel_with_data_to_aggregate, create_empty_test_excel):
     """Test copy."""
     source_file_path, source_sheet_name, _header_row = create_test_excel_with_data_to_aggregate
     dest_file_path, dest_sheet_name, _header_row = create_empty_test_excel
-    transform_range_from_to(source_file_path, source_sheet_name, ((2, 1), (3, 4)), 
-                             dest_file_path, dest_sheet_name, (1, 1),
-                             action='sum', mode='row')
+
+    template = ExcelTemplate(dest_file_path)
+    template.goto_sheet(dest_sheet_name, cell=(1, 1))
+    template.aggregate_range_from(source_file_path, source_sheet_name, ((2, 1), (3, 4)), action='sum', mode='row')
+    template.save(dest_file_path)
 
     assert Path(dest_file_path).exists()
 
@@ -26,9 +28,11 @@ def test_transform_sum_col(create_test_excel_with_data_to_aggregate, create_empt
     """Test copy."""
     source_file_path, source_sheet_name, _header_row = create_test_excel_with_data_to_aggregate
     dest_file_path, dest_sheet_name, _header_row = create_empty_test_excel
-    transform_range_from_to(source_file_path, source_sheet_name, ((2, 1), (3, 4)), 
-                             dest_file_path, dest_sheet_name, (1, 1),
-                             action='sum', mode='col')
+    
+    template = ExcelTemplate(dest_file_path)
+    template.goto_sheet(dest_sheet_name, cell=(1, 1))
+    template.aggregate_range_from(source_file_path, source_sheet_name, ((2, 1), (3, 4)), action='sum', mode='col')
+    template.save(dest_file_path)
 
     assert Path(dest_file_path).exists()
 
@@ -46,9 +50,11 @@ def test_transform_avg_row(create_test_excel_with_data_to_aggregate, create_empt
     """Test copy."""
     source_file_path, source_sheet_name, _header_row = create_test_excel_with_data_to_aggregate
     dest_file_path, dest_sheet_name, _header_row = create_empty_test_excel
-    transform_range_from_to(source_file_path, source_sheet_name, ((2, 1), (3, 4)), 
-                             dest_file_path, dest_sheet_name, (1, 1),
-                             action='avg', mode='row')
+
+    template = ExcelTemplate(dest_file_path)
+    template.goto_sheet(dest_sheet_name, cell=(1, 1))
+    template.aggregate_range_from(source_file_path, source_sheet_name, ((2, 1), (3, 4)), action='avg', mode='row')
+    template.save(dest_file_path)
 
     assert Path(dest_file_path).exists()
 
@@ -64,9 +70,12 @@ def test_transform_avg_col(create_test_excel_with_data_to_aggregate, create_empt
     """Test copy."""
     source_file_path, source_sheet_name, _header_row = create_test_excel_with_data_to_aggregate
     dest_file_path, dest_sheet_name, _header_row = create_empty_test_excel
-    transform_range_from_to(source_file_path, source_sheet_name, ((2, 1), (3, 4)), 
-                             dest_file_path, dest_sheet_name, (1, 1),
-                             action='avg', mode='col')
+
+
+    template = ExcelTemplate(dest_file_path)
+    template.goto_sheet(dest_sheet_name, cell=(1, 1))
+    template.aggregate_range_from(source_file_path, source_sheet_name, ((2, 1), (3, 4)), action='avg', mode='col')
+    template.save(dest_file_path)
 
     assert Path(dest_file_path).exists()
 

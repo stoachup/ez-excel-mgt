@@ -16,6 +16,20 @@ where
     PyErr::new::<E, _>(err_msg)
 }
 
+
+
+pub fn convert_anyvalue_to_string(value: AnyValue) -> String {
+    match value {
+        AnyValue::Null => "".to_string(),        // For null values, return an empty string
+        AnyValue::String(val) => val.to_string(),
+        AnyValue::Int32(val) => val.to_string(),
+        AnyValue::Int64(val) => val.to_string(),
+        AnyValue::Float64(val) => val.to_string(),
+        AnyValue::Boolean(val) => val.to_string(),
+        _ => value.to_string(),
+    }
+}
+
 /// Convert a Python Polars DataFrame to a Rust Polars DataFrame.
 ///
 /// This function serializes a Python Polars DataFrame into Arrow format using `pyarrow`
@@ -290,8 +304,6 @@ pub fn get_datatype(py: Python, df: &PyAny) -> PyResult<OriginalDataType> {
     let pandas_type = get_dataframe_type(py, "pandas")?;
     let polars_type = get_dataframe_type(py, "polars")?;
 
-    debug!("convert_to_polars_df");
-
     if df.is_instance(pandas_type)? {
         debug!("Pandas DataFrame found");
         Ok(OriginalDataType::Pandas)
@@ -305,8 +317,9 @@ pub fn get_datatype(py: Python, df: &PyAny) -> PyResult<OriginalDataType> {
         debug!("List of lists found");
         Ok(OriginalDataType::ListOfLists)
     } else {
-        // Handle case where df is neither a Pandas DataFrame nor a Polars DataFrame nor a dictionary
-        Err(py_err::<PyTypeError>(format!("Input is neither a Pandas DataFrame nor a Polars DataFrame nor a dictionary of lists.")))
+        let err_msg = format!("Input must be a Pandas or Polars DataFrame, dictionary of lists or list of lists with column names.");
+        error!("{}", err_msg);
+        Err(py_err::<PyTypeError>(err_msg))
     }
 }
 

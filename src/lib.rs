@@ -5,9 +5,10 @@ use pyo3::prelude::*;
 use std::env;
 use std::io::Write;
 
-mod fill;
-mod copy;
-mod transform;
+mod utils;
+mod structs;
+mod template;
+
 
 /// Python module initialization function.
 #[pymodule]
@@ -15,10 +16,8 @@ fn ez_excel_mgt(_py: Python, m: &PyModule) -> PyResult<()> {
     // Initialize logger only once
     init_logging();
 
-    // Add functions to the Python module
-    m.add_function(wrap_pyfunction!(fill::fill_sheet_with, m)?)?;
-    m.add_function(wrap_pyfunction!(copy::copy_range_between_files, m)?)?;
-    m.add_function(wrap_pyfunction!(transform::transform_range_from_to, m)?)?;
+    m.add_class::<template::ExcelTemplate>()?;
+
     Ok(())
 }
 
