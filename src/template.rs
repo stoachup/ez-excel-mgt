@@ -255,7 +255,7 @@ impl ExcelTemplate {
                     // Calculate destination cell coordinates, with optional transposing
                     let (d_col, d_row) = if transpose {
                         debug!("Transposing range");
-                        (current_cell_idx.1 + row - start_row, current_cell_idx.0 + col - start_col)
+                        (current_cell_idx.0 + row - start_row, current_cell_idx.1 + col - start_col)
                     } else {
                         (current_cell_idx.1 + col - start_col, current_cell_idx.0 + row - start_row)
                     };
