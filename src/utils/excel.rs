@@ -23,8 +23,8 @@ pub fn index_to_excel_col(col: u32) -> String {
 }
 
 pub fn excel_to_index(cell: &str) -> (u32, u32) {
-    let row_str = cell.chars().filter(|c| c.is_numeric()).collect::<String>();
     let col_str = cell.chars().filter(|c| c.is_alphabetic()).collect::<String>();
+    let row_str = cell.chars().filter(|c| c.is_numeric()).collect::<String>();
     
     // Convert column letters to a number
     let col = excel_col_to_index(&col_str);

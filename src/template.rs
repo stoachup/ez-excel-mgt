@@ -226,7 +226,7 @@ impl ExcelTemplate {
         let transpose = transpose.unwrap_or(false);
         let coerce = coerce.unwrap_or(Coerce::None);
 
-        let current_cell_idx = current_cell.idx();
+        let (current_cell_col, current_cell_row) = current_cell.idx();
         // Copy the range from the source sheet to the destination sheet
         debug!("Copying range {} of {} to {} of {}", 
             source_range.range(), source_sheet_name, current_cell.range(), current_sheet_name);
@@ -255,9 +255,9 @@ impl ExcelTemplate {
                     // Calculate destination cell coordinates, with optional transposing
                     let (d_col, d_row) = if transpose {
                         debug!("Transposing range");
-                        (current_cell_idx.0 + row - start_row, current_cell_idx.1 + col - start_col)
+                        (current_cell_col + row - start_row, current_cell_row + col - start_col)
                     } else {
-                        (current_cell_idx.1 + col - start_col, current_cell_idx.0 + row - start_row)
+                        (current_cell_col + col - start_col, current_cell_row + row - start_row)
                     };
                     // Attempt to set the value
                     worksheet.get_cell_mut((d_col, d_row)).set_value(&value);

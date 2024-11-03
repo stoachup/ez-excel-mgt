@@ -2,7 +2,7 @@
 use log::{debug, info, warn};
 use pyo3::prelude::*;
 
-use crate::utils::excel::{excel_to_index, index_to_excel};
+use crate::utils::excel::{excel_to_index, index_to_excel, index_to_excel_col};
 use crate::structs::Mode;
 use umya_spreadsheet::structs::Worksheet;
 
@@ -37,7 +37,10 @@ impl ExcelCell {
         }
     }
     pub fn range(&self) -> String {
-        index_to_excel(self.idx().0, self.idx().1)
+        match self {
+            ExcelCell::Tuple(t) => index_to_excel(t.1, t.0),
+            ExcelCell::String(s) => s.clone(),
+        }
     }
 }
 
@@ -84,7 +87,10 @@ impl ExcelRange {
         }
     }
     pub fn range(&self) -> String {
-        format!("{}:{}", index_to_excel(self.idx().0.0, self.idx().0.1), index_to_excel(self.idx().1.0, self.idx().1.1))
+        match self {
+            ExcelRange::Range(r) => format!("{}:{}", index_to_excel(r.0.1, r.0.0), index_to_excel(r.1.1, r.1.0)),
+            ExcelRange::String(s) => s.clone(),
+        }
     }
 }
 
@@ -135,18 +141,23 @@ impl ExcelHeader {
             ExcelHeader::First => Ok((1, 1)),
             ExcelHeader::Last => {
                 match mode {
-                    Mode::Row => {
-                        Ok((worksheet.get_highest_column(), 1))
-                    }
-                    Mode::Column => {
-                        Ok((1, worksheet.get_highest_row()))
-                    }
+                    Mode::Row => Ok((worksheet.get_highest_column(), 1)),
+                    Mode::Column => Ok((1, worksheet.get_highest_row())),
                 }
             }
         }
     }
     pub fn range(&self, worksheet: &Worksheet, mode: Mode) -> String {
-        let (col, row) = self.idx(worksheet, mode).unwrap_or((1, 1));
-        index_to_excel(col, row)
+        match self {
+            ExcelHeader::ExcelRange(r) => r.range(),
+            ExcelHeader::ExcelCell(c) => c.range(),
+            ExcelHeader::First => "A1".to_string(),
+            ExcelHeader::Last => {
+                match mode {
+                    Mode::Row => format!("A{}", worksheet.get_highest_row()),
+                    Mode::Column => format!("{}1", index_to_excel_col(worksheet.get_highest_column())),
+                }
+            }
+        }
     }
 }

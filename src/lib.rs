@@ -27,9 +27,7 @@ fn ez_excel_mgt(_py: Python, m: &PyModule) -> PyResult<()> {
 /// If neither is set, it defaults to the "error" log level.
 fn init_logging() {
     // First check `LOGLEVEL`, then fallback to `RUST_LOG`, or default to "error"
-    let log_env = env::var("LOGLEVEL")
-        .or_else(|_| env::var("RUST_LOG"))
-        .unwrap_or_else(|_| "error".to_string());
+    let log_env = env::var("RUST_LOG").unwrap_or_else(|_| "error".to_string());
 
     let log_level = log_env.parse::<LevelFilter>().unwrap_or_else(|_| {
         warn!("Invalid log level: {}. Defaulting to 'error'.", log_env);
