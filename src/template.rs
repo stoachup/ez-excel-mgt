@@ -192,8 +192,8 @@ impl ExcelTemplate {
         source_file_path: &str,
         source_sheet_name: &str,
         source_range: ExcelRange,
-        transpose_range: Option<bool>,
-        coerce_values: Option<Coerce>,
+        transpose: Option<bool>,
+        coerce: Option<Coerce>,
     ) -> PyResult<()> {
         let spreadsheet = Arc::get_mut(&mut self.spreadsheet)
         .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Cannot modify spreadsheet."))?;
@@ -222,8 +222,8 @@ impl ExcelTemplate {
         // Match on the SourceRange enum to handle both cases
         let ((start_col, start_row), (end_col, end_row)) = source_range.idx();
 
-        let transpose = transpose_range.unwrap_or(false);
-        let coerce = coerce_values.unwrap_or(Coerce::None);
+        let transpose = transpose.unwrap_or(false);
+        let coerce = coerce.unwrap_or(Coerce::None);
 
         let current_cell_idx = current_cell.idx();
         // Copy the range from the source sheet to the destination sheet
