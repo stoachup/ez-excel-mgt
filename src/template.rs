@@ -49,6 +49,7 @@ impl ExcelTemplate {
     #[new]
     pub fn new(_py: Python, file_path: &str) -> PyResult<Self> {
         let spreadsheet = Arc::new(Self::load_spreadsheet(file_path)?);
+        debug!("Spreadsheet loadedfrom {}", file_path);
         Ok(ExcelTemplate { spreadsheet, current_sheet_name: None, current_cell_in_current_sheet: None })
     }
 
@@ -218,7 +219,7 @@ impl ExcelTemplate {
         let source_sheet = source_workbook.get_sheet_by_name(source_sheet_name).ok_or_else(|| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Source sheet '{}' not found.", source_sheet_name))
         })?;
-
+        debug!("Source sheet {} found in {}", source_sheet_name, source_file_path);
         // Match on the SourceRange enum to handle both cases
         let ((start_col, start_row), (end_col, end_row)) = source_range.idx();
 
@@ -302,6 +303,7 @@ impl ExcelTemplate {
         })?;
         let source_sheet = source_workbook.get_sheet_by_name(source_sheet_name)
             .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>("Source sheet not found"))?;
+        debug!("Source sheet {} found in {}", source_sheet_name, source_file_path);
     
         // Match on the SourceRange enum to handle both cases
         let ((start_col, start_row), (end_col, end_row)) = source_range.idx();
