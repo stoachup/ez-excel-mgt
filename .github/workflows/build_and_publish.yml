@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [windows-latest ]
         python-version: ["3.10"]
 
     steps:
@@ -91,7 +91,7 @@ jobs:
       - name: Download Wheels
         uses: actions/download-artifact@v3
         with:
-          name: wheels-*
+          name: wheels--${{ matrix.os }}-${{ matrix.python-version }}
 
       # Set up Python
       - name: Set up Python
