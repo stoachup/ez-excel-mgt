@@ -22,7 +22,7 @@ include = [
     "src/**/*.rs",  # All Rust source files
     "pyproject.toml",  # Your Python project metadata
     "Cargo.toml",  # Your Rust project metadata
-    "README.rst",  # Include the README file
+    "README.md",  # Include the README file
     "LICENSE",    # Include the LICENSE file
     "example.py"
 ]
