@@ -73,11 +73,11 @@ jobs:
 
       # Build source distribution
       - name: Build source distribution
-        run: maturin build sdist
+        run: poetry run maturin build sdist
 
       # Build wheels
       - name: Build Wheels
-        run: maturin build --release
+        run: poetry run maturin build --release
 
       # Upload the built wheels as artifacts
       - name: Upload Wheels
