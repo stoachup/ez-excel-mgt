@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ez-excel-mgt"
-version = "1.0.5"
+version = "1.0.6"
 description = "Rust-powered Python module for Excel manipulation"
 authors = ["Christophe Druet <christophe@stoachup.com>"]
 license = "MIT"
@@ -54,7 +54,7 @@ exclude = ["test*", "wheelhouse", "target", "example*"]  # exclude packages matc
 namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
 
 [tool.bumpver]
-current_version = "1.0.5"
+current_version = "1.0.6"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message  = "bump version {old_version} -> {new_version}"
 commit          = true
@@ -66,7 +66,7 @@ push            = false
         '^current_version = "{version}"',
         '^version = "{version}"',
     ]
-    "cargo.toml" = [
+    "Cargo.toml" = [
         '^version = "{version}"',
     ]
 
@@ -74,4 +74,4 @@ push            = false
 profile                   = "black"
 import_heading_stdlib     = "Standard library imports"
 import_heading_thirdparty = "Third party imports"
-import_heading_firstparty = "mongument imports"
+import_heading_firstparty = "Local imports"
