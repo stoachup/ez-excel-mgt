@@ -71,10 +71,6 @@ jobs:
       - name: Install Maturin
         run: pip install maturin
 
-      # Build source distribution
-      - name: Build source distribution
-        run: poetry run maturin build sdist
-
       # Build wheels
       - name: Build Wheels
         run: poetry run maturin build --release
