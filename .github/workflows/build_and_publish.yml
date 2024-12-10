@@ -60,6 +60,10 @@ jobs:
       - name: Install Dependencies
         run: poetry install --no-interaction --no-ansi
 
+      # Build sdist and bdist_wheel
+      - name: Build sdist and bdist_wheel
+        run: poetry build
+
       # Install Rust (Maturin dependency)
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -91,7 +95,7 @@ jobs:
       - name: Download Wheels
         uses: actions/download-artifact@v3
         with:
-          name: wheels--${{ matrix.os }}-${{ matrix.python-version }}
+          path: all_wheels
 
       # Set up Python
       - name: Set up Python
@@ -108,4 +112,4 @@ jobs:
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: twine upload target/wheels/*.whl
+        run: twine upload --skip-existing all_wheels/**/*
