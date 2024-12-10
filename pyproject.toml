@@ -11,9 +11,6 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
 ]
 keywords = ["credentials", "keyring"]
-packages = [
-    { include = "src" },
-]
 
 # If needed, you can use `exclude` to prevent certain files from being included
 exclude = [
