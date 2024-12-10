@@ -30,6 +30,24 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # Install Poetry on Windows
+      - name: Install Poetry on Windows
+        if: runner.os == 'Windows'
+        run: |
+          (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+
+      # Add Poetry to PATH on Windows
+      - name: Add Poetry to PATH on Windows
+        if: runner.os == 'Windows'
+        run: |
+          $poetryPath = "${{ runner.temp }}\.poetry\bin"
+          echo "$poetryPath" >> $env:GITHUB_PATH
+
+      # Install Poetry on Linux/MacOS
+      - name: Install Poetry
+        if: runner.os != 'Windows'
+        run: curl -sSL https://install.python-poetry.org | python3 -
+    
       # Cache Poetry dependencies for faster builds
       - name: Cache Poetry Dependencies
         uses: actions/cache@v3
@@ -38,14 +56,6 @@ jobs:
           key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-
-
-      # Install Poetry
-      - name: Install Poetry
-        run: curl -sSL https://install.python-poetry.org | python3 -
-
-      - name: Add Poetry to PATH on Windows
-        if: runner.os == 'Windows'
-        run: echo "${{ runner.temp }}\\.local\\bin" >> $GITHUB_PATH
 
       # Install project dependencies
       - name: Install Dependencies
