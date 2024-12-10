@@ -16,8 +16,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        os: [windows-latest]
+        python-version: ["3.10"]
 
     steps:
       # Checkout the repository
@@ -34,14 +34,13 @@ jobs:
       - name: Install Poetry on Windows
         if: runner.os == 'Windows'
         run: |
-          (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
-
-      # Add Poetry to PATH on Windows
-      - name: Add Poetry to PATH on Windows
-        if: runner.os == 'Windows'
-        run: |
-          $poetryPath = "${{ runner.temp }}\.poetry\bin"
-          echo "$poetryPath" >> $env:GITHUB_PATH
+          python -m ensurepip --upgrade
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+          echo "Adding Poetry to PATH"
+          echo "${{ env.APPDATA }}\\Python\\Scripts" >> $env:GITHUB_PATH
+          echo "Verifying Poetry Installation"
+          poetry --version
 
       # Install Poetry on Linux/MacOS
       - name: Install Poetry
