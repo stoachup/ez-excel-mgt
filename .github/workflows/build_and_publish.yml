@@ -60,10 +60,6 @@ jobs:
       - name: Install Dependencies
         run: poetry install --no-interaction --no-ansi
 
-      # Build sdist and bdist_wheel
-      - name: Build sdist and bdist_wheel
-        run: poetry build
-
       # Install Rust (Maturin dependency)
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -74,6 +70,10 @@ jobs:
       # Install Maturin
       - name: Install Maturin
         run: pip install maturin
+
+      # Build source distribution
+      - name: Build source distribution
+        run: maturin build sdist
 
       # Build wheels
       - name: Build Wheels
