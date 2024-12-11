@@ -17,7 +17,6 @@ name = "ez_excel_mgt"
 crate-type = ["cdylib"]
 
 [package.metadata.maturin]
-repository-url = "https://pypi.org/simple/"
 bindings = ["pyo3"]
 include = [
     "src/**/*.rs",
