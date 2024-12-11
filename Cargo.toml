@@ -2,6 +2,13 @@
 name = "ez_excel_mgt"
 version = "1.0.22"
 edition = "2018"
+description = "A Rust-powered Python library for Excel file management and data manipulation"
+license-file = "LICENSE"
+documentation = "https://github.com/stoachup/ez-excel-mgt"
+homepage = "https://github.com/stoachup/ez-excel-mgt"
+repository = "https://github.com/stoachup/ez-excel-mgt"
+
+
 
 [dependencies]
 log = "0.4.22"
@@ -21,14 +28,15 @@ bindings = ["pyo3"]
 include = [
     "src/**/*.rs",
     "pyproject.toml",
-    "Cargo.toml",
+    "cargo.toml",
     "README.md",
     "LICENSE"
 ]
 exclude = [
-    "tests",
-    "target/**/*.*",
-    "example_*.py",
-    "*.lock",
-    "wheelhouse"
+    "tests/**/*",
+    "target/**/*",
+    "example*.*",
+    "Cargo.lock",
+    "poetry.lock",
+    "wheelhouse/**/*"
 ]

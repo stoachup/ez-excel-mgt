@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "ez-excel-mgt"
+name = "ez_excel_mgt"
 version = "1.0.22"
 description = "Rust-powered Python module for Excel manipulation"
 authors = ["Christophe Druet <christophe@stoachup.com>"]
@@ -11,6 +11,8 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
 ]
 keywords = ["credentials", "keyring"]
+homepage = "https://github.com/stoachup/ez-excel-mgt"
+repository = "https://github.com/stoachup/ez-excel-mgt"
 
 # If needed, you can use `exclude` to prevent certain files from being included
 exclude = [
@@ -44,7 +46,7 @@ isort = "^5.13.2"
 loguru = "^0.7.2"
 
 [build-system]
-requires = ["maturin>=1.7.1", "setuptools", "cibuildwheel>=2.0"]
+requires = ["poetry-core>=1.4.0", "maturin>=1.7.1", "setuptools", "cibuildwheel>=2.0"]
 build-backend = "maturin"
 
 [tool.setuptools.packages.find]

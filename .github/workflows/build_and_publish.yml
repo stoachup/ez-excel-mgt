@@ -97,7 +97,32 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.11"
+
+      # Install Poetry on Linux/MacOS
+      - name: Install Poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
+    
+      # Cache Poetry dependencies for faster builds
+      - name: Cache Poetry Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      # Install project dependencies
+      - name: Install Dependencies
+        run: poetry install --no-interaction --no-ansi
+
+      # Install Maturin
+      - name: Install Maturin
+        run: pip install maturin
+
+      # Build wheels
+      - name: Build Wheels
+        run: maturin sdist
 
       # Install Twine for publishing
       - name: Install Twine
