@@ -8,6 +8,10 @@ on:
     branches:
       - master
 
+env:
+  # Disable incremental compilation for faster from-scratch builds
+  CARGO_INCREMENTAL: 0
+
 jobs:
   build:
     name: Build Wheels
@@ -22,7 +26,7 @@ jobs:
     steps:
       # Checkout the repository
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Set up Python for the selected version
       - name: Set up Python ${{ matrix.python-version }}
@@ -60,12 +64,9 @@ jobs:
       - name: Install Dependencies
         run: poetry install --no-interaction --no-ansi
 
-      # Install Rust (Maturin dependency)
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+      # Update the Rust
+      - name: Update Rust
+        run: rustup update stable
 
       # Install Maturin
       - name: Install Maturin
@@ -108,6 +109,4 @@ jobs:
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: |
-          echo "PyPI Username: $TWINE_USERNAME"
-          twine upload --skip-existing all_wheels/**/*
+        run: twine upload --skip-existing all_wheels/**/*
