@@ -1,6 +1,6 @@
 [package]
 name = "ez_excel_mgt"
-version = "1.0.24"
+version = "1.0.25"
 edition = "2018"
 description = "A Rust-powered Python library for Excel file management and data manipulation"
 license-file = "LICENSE"
