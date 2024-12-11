@@ -16,8 +16,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest ]
-        python-version: ["3.10"]
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
       # Checkout the repository
@@ -30,18 +30,22 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Install Poetry
-      - name: Install Poetry
+      # Install Poetry on Windows
+      - name: Install Poetry on Windows
+        if: runner.os == 'Windows'
         run: |
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            python -m ensurepip --upgrade
-            python -m pip install --upgrade pip
-            python -m pip install poetry
-            echo "${{ env.APPDATA }}\\Python\\Scripts" >> $env:GITHUB_PATH
-          else
-            curl -sSL https://install.python-poetry.org | python3 -
-          fi
+          python -m ensurepip --upgrade
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+          echo "Adding Poetry to PATH"
+          echo "${{ env.APPDATA }}\\Python\\Scripts" >> $env:GITHUB_PATH
+          echo "Verifying Poetry Installation"
           poetry --version
+
+      # Install Poetry on Linux/MacOS
+      - name: Install Poetry
+        if: runner.os != 'Windows'
+        run: curl -sSL https://install.python-poetry.org | python3 -
     
       # Cache Poetry dependencies for faster builds
       - name: Cache Poetry Dependencies
