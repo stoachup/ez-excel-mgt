@@ -108,4 +108,4 @@ jobs:
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: twine upload --repository-url https://pypi.org/simple --skip-existing all_wheels/**/*
+        run: twine upload --repository-url https://pypi.org/simple/ --skip-existing all_wheels/**/*
