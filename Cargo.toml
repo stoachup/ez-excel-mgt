@@ -1,6 +1,6 @@
 [package]
 name = "ez_excel_mgt"
-version = "1.0.15"
+version = "1.0.16"
 edition = "2018"
 
 [dependencies]
