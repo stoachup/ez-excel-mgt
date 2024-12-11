@@ -73,7 +73,7 @@ jobs:
 
       # Build wheels
       - name: Build Wheels
-        run: poetry run maturin build --release
+        run: maturin build --release
 
       # Upload the built wheels as artifacts
       - name: Upload Wheels
@@ -108,4 +108,4 @@ jobs:
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: twine upload --skip-existing all_wheels/**/*
+        run: twine upload --repository-url https://pypi.org/simple --skip-existing all_wheels/**/*
